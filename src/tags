@@ -1,0 +1,138 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.8	//
+AP_PARAM_FLOAT	libraries/Config/tools/eedump_apparam.c	/^    AP_PARAM_FLOAT,$/;"	e	enum:ap_var_type	file:
+AP_PARAM_GROUP	libraries/Config/tools/eedump_apparam.c	/^    AP_PARAM_GROUP$/;"	e	enum:ap_var_type	file:
+AP_PARAM_INT16	libraries/Config/tools/eedump_apparam.c	/^    AP_PARAM_INT16,$/;"	e	enum:ap_var_type	file:
+AP_PARAM_INT32	libraries/Config/tools/eedump_apparam.c	/^    AP_PARAM_INT32,$/;"	e	enum:ap_var_type	file:
+AP_PARAM_INT8	libraries/Config/tools/eedump_apparam.c	/^    AP_PARAM_INT8,$/;"	e	enum:ap_var_type	file:
+AP_PARAM_MATRIX3F	libraries/Config/tools/eedump_apparam.c	/^    AP_PARAM_MATRIX3F,$/;"	e	enum:ap_var_type	file:
+AP_PARAM_NONE	libraries/Config/tools/eedump_apparam.c	/^    AP_PARAM_NONE    = 0,$/;"	e	enum:ap_var_type	file:
+AP_PARAM_VECTOR3F	libraries/Config/tools/eedump_apparam.c	/^    AP_PARAM_VECTOR3F,$/;"	e	enum:ap_var_type	file:
+AP_PARAM_VECTOR6F	libraries/Config/tools/eedump_apparam.c	/^    AP_PARAM_VECTOR6F,$/;"	e	enum:ap_var_type	file:
+CONFIG_MAGIC	libraries/Config/Config.h	/^    const static uint16_t CONFIG_MAGIC=0x5cf9; \/\/ Submarine CFG$/;"	m	class:Config
+Config	libraries/Config/Config.h	/^    Config() {}$/;"	f	class:Config
+Config	libraries/Config/Config.h	/^class Config$/;"	c
+DECLARE_FIELD	libraries/Config/Config.h	193;"	d
+DEFAULT_MAIN_LOOP_RATE	libraries/Config/Config.h	26;"	d
+EEPROM_header	libraries/Config/tools/eedump.c	/^struct PACKED EEPROM_header {$/;"	s	file:
+EEPROM_header	libraries/Config/tools/eedump_apparam.c	/^struct EEPROM_header {$/;"	s	file:
+EEprom	libraries/Config/Config.h	/^    struct EEprom$/;"	s	class:Config
+FUNCTOR_BIND	libraries/Utils/functor.h	29;"	d
+FUNCTOR_BIND_MEMBER	libraries/Utils/functor.h	32;"	d
+FUNCTOR_DECLARE	libraries/Utils/functor.h	26;"	d
+FUNCTOR_TYPEDEF	libraries/Utils/functor.h	23;"	d
+Functor	libraries/Utils/functor.h	/^    constexpr Functor()$/;"	f	class:Functor
+Functor	libraries/Utils/functor.h	/^    constexpr Functor(void *obj, RetType (*method)(void *obj, Args...))$/;"	f	class:Functor
+Functor	libraries/Utils/functor.h	/^class Functor$/;"	c
+MAIN_LOOP_MICROS	libraries/Config/Config.h	29;"	d
+MAIN_LOOP_RATE	libraries/Config/Config.h	27;"	d
+MAIN_LOOP_SECONDS	libraries/Config/Config.h	28;"	d
+MAX_LOOP_RATE_HZ	libraries/Scheduler/Scheduler.h	29;"	d
+MIN_LOOP_RATE_HZ	libraries/Scheduler/Scheduler.h	28;"	d
+PARAMDEF	libraries/Config/Config.h	200;"	d
+PARAMDEFV	libraries/Config/Config.h	206;"	d
+ParamT	libraries/Config/Config.h	/^    ParamT(T& ref, const T& defval) : Config(), _value(ref)$/;"	f	class:ParamT
+ParamT	libraries/Config/Config.h	/^class ParamT : public Config$/;"	c
+ParamV	libraries/Config/Config.h	/^    ParamV(T& ref, const T& defval) : Config(), _value(ref)$/;"	f	class:ParamV
+ParamV	libraries/Config/Config.h	/^class ParamV : public Config$/;"	c
+Param_header	libraries/Config/tools/eedump_apparam.c	/^struct Param_header {$/;"	s	file:
+SCHED_TASK	Sub.cpp	5;"	d	file:
+SCHED_TASK_CLASS	libraries/Scheduler/Scheduler.h	31;"	d
+Scheduler	libraries/Config/Config.h	/^        Scheduler;$/;"	m	struct:Config::EEprom	typeref:struct:Config::EEprom::__anon1
+Scheduler	libraries/Config/prova.cpp	/^Scheduler::Scheduler()$/;"	f	class:Scheduler
+Scheduler	libraries/Config/prova.cpp	/^class Scheduler$/;"	c	file:
+Scheduler	libraries/Scheduler/Scheduler.cpp	/^Scheduler::Scheduler(void)$/;"	f	class:Scheduler
+Scheduler	libraries/Scheduler/Scheduler.h	/^class Scheduler$/;"	c
+Sub	Sub.cpp	/^Sub::Sub()$/;"	f	class:Sub
+Sub	Sub.h	/^class Sub$/;"	c
+Task	libraries/Scheduler/Scheduler.h	/^    class Task$/;"	c	class:Scheduler
+Var_header	libraries/Config/tools/eedump.c	/^struct PACKED Var_header {$/;"	s	file:
+_config	libraries/Config/Config.cpp	/^Config::EEprom Config::_config = { 0 };$/;"	m	class:Config	file:
+_config	libraries/Config/Config.h	/^    static EEprom _config;$/;"	m	class:Config
+_function	libraries/Scheduler/Scheduler.h	/^        Task_func_ptr_T  _function;$/;"	m	class:Scheduler::Task
+_last_run	libraries/Scheduler/Scheduler.h	/^    uint16_t      *_last_run;          \/\/ tick counter at the time we last ran each task$/;"	m	class:Scheduler
+_loop_rate_hz	libraries/Config/Config.h	/^            int16_t _loop_rate_hz;$/;"	m	struct:Config::EEprom::__anon1
+_loop_rate_hz	libraries/Config/prova.cpp	/^    static PInt16 _loop_rate_hz; \/\/ overall scheduling rate in Hz$/;"	m	class:Scheduler	file:
+_loop_rate_hz	libraries/Scheduler/Scheduler.h	/^    static PInt16  _loop_rate_hz;      \/\/ overall scheduling rate in Hz$/;"	m	class:Scheduler
+_magic	libraries/Config/Config.h	/^        uint16_t _magic;$/;"	m	struct:Config::EEprom
+_max_time_us	libraries/Scheduler/Scheduler.h	/^        uint16_t         _max_time_us;$/;"	m	class:Scheduler::Task
+_method	libraries/Utils/functor.h	/^    RetType (*_method)(void *obj, Args...);$/;"	m	class:Functor
+_name	libraries/Scheduler/Scheduler.h	/^        const char      *_name;$/;"	m	class:Scheduler::Task
+_num_tasks	libraries/Scheduler/Scheduler.h	/^    uint8_t        _num_tasks;         \/\/ number of tasks in _tasks list$/;"	m	class:Scheduler
+_obj	libraries/Utils/functor.h	/^    void *_obj;$/;"	m	class:Functor
+_rate_hz	libraries/Scheduler/Scheduler.h	/^        float            _rate_hz;$/;"	m	class:Scheduler::Task
+_scheduler	Sub.h	/^    Scheduler _scheduler;$/;"	m	class:Sub
+_sentinal_group	libraries/Config/tools/eedump_apparam.c	/^static const uint8_t _sentinal_group = 0xFF;$/;"	v	file:
+_sentinal_key	libraries/Config/tools/eedump_apparam.c	/^static const uint8_t _sentinal_key   = 0xFF;$/;"	v	file:
+_sentinal_type	libraries/Config/tools/eedump_apparam.c	/^static const uint8_t _sentinal_type  = 0xFF;$/;"	v	file:
+_spare_ticks	libraries/Scheduler/Scheduler.h	/^    uint8_t        _spare_ticks;       \/\/ number of ticks that _spare_micros is counted over$/;"	m	class:Scheduler
+_spare_us	libraries/Scheduler/Scheduler.h	/^    uint32_t       _spare_us;          \/\/ number of spare microseconds accumulated$/;"	m	class:Scheduler
+_task_time_allowed	libraries/Scheduler/Scheduler.h	/^    uint32_t       _task_time_allowed; \/\/ number of microseconds allowed for the current task$/;"	m	class:Scheduler
+_task_time_started	libraries/Scheduler/Scheduler.h	/^    uint32_t       _task_time_started; \/\/ the time in microseconds when the task started$/;"	m	class:Scheduler
+_tasks	libraries/Scheduler/Scheduler.h	/^    const Task    *_tasks;             \/\/ progmem list of tasks to run$/;"	m	class:Scheduler
+_tick_counter	libraries/Scheduler/Scheduler.h	/^    uint16_t       _tick_counter;      \/\/ number of 'ticks' that have passed (number of times that$/;"	m	class:Scheduler
+_value	libraries/Config/Config.h	/^    T& _value;$/;"	m	class:ParamT
+_value	libraries/Config/Config.h	/^    T& _value;$/;"	m	class:ParamV
+_version	libraries/Config/Config.h	/^        uint16_t _version;$/;"	m	struct:Config::EEprom
+ap_var_type	libraries/Config/tools/eedump_apparam.c	/^enum ap_var_type {$/;"	g	file:
+bind	libraries/Utils/functor.h	/^    static constexpr Functor bind(T *obj)$/;"	f	class:Functor
+constraint	libraries/Utils/Utils.h	4;"	d
+decltype	libraries/Utils/functor.h	/^    constexpr Functor(decltype(nullptr))$/;"	f	class:Functor
+dump	libraries/Config/Config.cpp	/^void Config::dump()$/;"	f	class:Config
+eeprom	libraries/Config/tools/eedump.c	/^uint8_t eeprom[0x1000];$/;"	v
+eeprom	libraries/Config/tools/eedump_apparam.c	/^uint8_t eeprom[0x1000];$/;"	v
+fail	libraries/Config/tools/eedump.c	/^fail(const char *why)$/;"	f
+fail	libraries/Config/tools/eedump_apparam.c	/^fail(const char *why)$/;"	f	file:
+group_element	libraries/Config/tools/eedump_apparam.c	/^    uint32_t group_element : 18;$/;"	m	struct:Param_header	file:
+init	libraries/Scheduler/Scheduler.cpp	/^void Scheduler::init(const Scheduler::Task *tasks, uint8_t num_tasks)$/;"	f	class:Scheduler
+k_EEPROM_magic	libraries/Config/tools/eedump.c	/^static const uint16_t k_EEPROM_magic      = 0x5041;$/;"	v	file:
+k_EEPROM_magic0	libraries/Config/tools/eedump_apparam.c	/^static const uint16_t k_EEPROM_magic0     = 0x50;$/;"	v	file:
+k_EEPROM_magic1	libraries/Config/tools/eedump_apparam.c	/^static const uint16_t k_EEPROM_magic1     = 0x41;$/;"	v	file:
+k_EEPROM_revision	libraries/Config/tools/eedump.c	/^static const uint16_t k_EEPROM_revision   = 2;$/;"	v	file:
+k_EEPROM_revision	libraries/Config/tools/eedump_apparam.c	/^static const uint16_t k_EEPROM_revision   = 6;$/;"	v	file:
+k_key_sentinel	libraries/Config/tools/eedump.c	/^static const uint8_t k_key_sentinel = 0xff;$/;"	v	file:
+key	libraries/Config/tools/eedump.c	/^    uint8_t key;$/;"	m	struct:Var_header	file:
+key	libraries/Config/tools/eedump_apparam.c	/^    uint32_t key : 8;$/;"	m	struct:Param_header	file:
+linearmap	libraries/Utils/Utils.h	8;"	d
+load	libraries/Config/Config.cpp	/^void Config::load()$/;"	f	class:Config
+loaded	libraries/Config/Config.h	/^    static bool loaded() { return ( ( _config._magic == Config::CONFIG_MAGIC ) && ( _config._version > 0 ) ); }$/;"	f	class:Config
+loop	Sub.cpp	/^void Sub::loop()$/;"	f	class:Sub
+magic	libraries/Config/tools/eedump.c	/^    uint16_t magic;$/;"	m	struct:EEPROM_header	file:
+magic	libraries/Config/tools/eedump_apparam.c	/^    uint8_t magic[2];$/;"	m	struct:EEPROM_header	file:
+main	libraries/Config/prova.cpp	/^int main(int argc, char *argv[])$/;"	f
+main	libraries/Config/tools/eedump.c	/^main(int argc, char *argv[])$/;"	f
+main	libraries/Config/tools/eedump_apparam.c	/^main(int argc, char *argv[])$/;"	f
+method_wrapper	libraries/Utils/functor.h	/^    static RetType method_wrapper(void *obj, Args... args)$/;"	f	class:Functor
+mirror	libraries/Config/Config.h	/^    static EEprom& mirror()$/;"	f	class:Config
+operator &=	libraries/Config/Config.h	/^    ParamT<T>& operator &=(const T& v)$/;"	f	class:ParamT
+operator ()	libraries/Utils/functor.h	/^    RetType operator()(Args... args) const$/;"	f	class:Functor
+operator +=	libraries/Config/Config.h	/^    ParamT<T>& operator +=(const T& v)$/;"	f	class:ParamT
+operator -=	libraries/Config/Config.h	/^    ParamT<T>& operator -=(const T& v)$/;"	f	class:ParamT
+operator =	libraries/Config/Config.h	/^    ParamT<T>& operator= (const T& v)$/;"	f	class:ParamT
+operator =	libraries/Config/Config.h	/^    ParamV<T>& operator=(const T& v)$/;"	f	class:ParamV
+operator ==	libraries/Utils/functor.h	/^    inline bool operator==(const Functor<RetType, Args...>& rhs)$/;"	f	class:Functor
+operator bool	libraries/Utils/functor.h	/^    explicit operator bool() const$/;"	f	class:Functor
+operator const T&	libraries/Config/Config.h	/^    operator const T& () const$/;"	f	class:ParamT
+operator const T&	libraries/Config/Config.h	/^    operator const T& () const$/;"	f	class:ParamV
+operator float	libraries/Config/Config.h	/^    operator float() const$/;"	f	class:ParamT
+operator |=	libraries/Config/Config.h	/^    ParamT<T>& operator |=(const T& v)$/;"	f	class:ParamT
+revision	libraries/Config/tools/eedump.c	/^    uint8_t revision;$/;"	m	struct:EEPROM_header	file:
+revision	libraries/Config/tools/eedump_apparam.c	/^    uint8_t revision;$/;"	m	struct:EEPROM_header	file:
+run	libraries/Scheduler/Scheduler.cpp	/^void Scheduler::run(uint32_t time_available)$/;"	f	class:Scheduler
+save	libraries/Config/Config.cpp	/^void Config::save()$/;"	f	class:Config
+setup	Sub.cpp	/^void Sub::setup()$/;"	f	class:Sub
+size	libraries/Config/tools/eedump.c	/^    uint8_t size : 6;$/;"	m	struct:Var_header	file:
+spare	libraries/Config/tools/eedump.c	/^    uint8_t spare : 2;$/;"	m	struct:Var_header	file:
+spare	libraries/Config/tools/eedump.c	/^    uint8_t spare;$/;"	m	struct:EEPROM_header	file:
+spare	libraries/Config/tools/eedump_apparam.c	/^    uint8_t spare;$/;"	m	struct:EEPROM_header	file:
+tasks	Sub.cpp	/^const Scheduler::Task tasks[] =$/;"	v
+tick	libraries/Scheduler/Scheduler.cpp	/^void Scheduler::tick(void)$/;"	f	class:Scheduler
+type	libraries/Config/tools/eedump_apparam.c	/^    uint32_t type : 6;$/;"	m	struct:Param_header	file:
+type_names	libraries/Config/tools/eedump_apparam.c	/^static const char *type_names[8] = {$/;"	v	file:
+type_size	libraries/Config/tools/eedump_apparam.c	/^static uint8_t type_size(enum ap_var_type type)$/;"	f	file:
+update	libraries/Config/prova.cpp	/^    void update()$/;"	f	class:Scheduler
+~Config	libraries/Config/Config.h	/^    ~Config() {}$/;"	f	class:Config
