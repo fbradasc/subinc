@@ -12,4 +12,6 @@ public:
 
 private:
     Scheduler _scheduler;
+    PPMSum    _ppmsum;
+    Servos    _servos;
 };

@@ -53,6 +53,77 @@ public:
             uint16_t _loop_rate_hz;
         }
         Scheduler;
+
+        struct
+        {
+            struct
+            {
+                //--------------+--------------------------------------------------------------------+-------------+
+                //              |                           PulseWidth (us)                          | NumChannels |
+                //     Mode     +---------------+------+------+-------------+---------+------+-------+------+------+
+                //              | _frame_period | _pre | _min | _forced_min | _center | _max | _sync | _min | _max |
+                //--------------+---------------+------+------+-------------+---------+------+-------+------+------+
+                // Standard PPM |     20000     |  400 |  920 |    1800     |   1520  | 2120 |       |   4  |   8  |
+                // 9 channels   |     22500     |  400 |  920 |    1800     |   1520  | 2120 |       |   4  |   9  |
+                // PPMv2        |     20000     |  200 |  460 |     900     |    760  | 1060 |       |   4  |  16  |
+                // PPMv3        |     25000     |  400 |  750 |    1260     |   1050  | 1350 |       |   4  |  16  |  
+                //--------------+---------------+------+------+-------------+---------+------+-------+------+------+
+
+                struct
+                {
+                    struct
+                    {
+                        uint16_t _pre;
+                        uint16_t _min;
+                        uint16_t _forced_min;
+                        uint16_t _max;
+                        uint16_t _center;
+                        uint16_t _sync;
+                    }
+                    PulseWidth;
+
+                    struct
+                    {
+                        uint8_t _min;
+                        uint8_t _max;
+                    }
+                    NumChannels;
+
+                    uint16_t _frame_period;
+                }
+                Primary;
+
+                struct
+                {
+                    struct
+                    {
+                        uint16_t _pre;
+                        uint16_t _min;
+                        uint16_t _max;
+                        uint16_t _center;
+                        uint16_t _sync;
+                    }
+                    PulseWidth;
+
+                    struct
+                    {
+                        uint8_t _min;
+                        uint8_t _max;
+                    }
+                    NumChannels;
+
+                    uint16_t _frame_period;
+                }
+                Secondary;
+            }
+            PPM;
+
+            struct
+            {
+            }
+            PWM;
+        }
+        RCInput;
     };
 #pragma pack(pop)
 
