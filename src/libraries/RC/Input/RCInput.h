@@ -1,9 +1,21 @@
+/*
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation, either version 3 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #pragma once
 
 #include <Debug/Debug.h>
-
-#define RC_INPUT_MIN_PULSEWIDTH 900
-#define RC_INPUT_MAX_PULSEWIDTH 2100
 
 class RCInput
 {
@@ -14,8 +26,8 @@ public:
      * known to the programmer. (Its too difficult to describe this dependency
      * in the C++ type system.)
      */
-    virtual void init(void* implspecific) = 0;
-    virtual void deinit() {};
+    virtual void init(void* implspecific) {}
+    virtual void deinit() {}
 
     /**
      * Return true if there has been new input since the last read()
@@ -23,18 +35,18 @@ public:
      * returns true it won't return true again until another frame is
      * received.
      */
-    virtual bool new_input() = 0;
+    virtual bool new_input() { return false; }
 
     /**
      * Return the number of valid channels in the last read
      */
-    virtual uint8_t  num_channels() = 0;
+    virtual uint8_t  num_channels() { return 0; }
 
     /* Read a single channel at a time */
-    virtual uint16_t read(uint8_t ch) = 0;
+    virtual uint16_t read(uint8_t ch) { return 0; }
 
     /* Read an array of channels, return the valid count */
-    virtual uint8_t read(uint16_t* periods, uint8_t len) = 0;
+    virtual uint8_t read(uint16_t* periods, uint8_t len) { return 0; }
 
     /**
      * Overrides: these are really grody and don't belong here but we need
@@ -46,11 +58,11 @@ public:
      */
 
     /* set_overrides: array starts at ch 0, for len channels */
-    virtual bool set_overrides(int16_t *overrides, uint8_t len) = 0;
+    virtual bool set_overrides(int16_t *overrides, uint8_t len) { return false; }
     /* set_override: set just a specific channel */
-    virtual bool set_override(uint8_t channel, int16_t override) = 0;
+    virtual bool set_override(uint8_t channel, int16_t override) { return false; }
     /* clear_overrides: equivelant to setting all overrides to 0 */
-    virtual void clear_overrides() = 0;
+    virtual void clear_overrides() {}
 
     /* execute receiver bind */
     virtual bool rc_bind(int dsmMode) { return false; };

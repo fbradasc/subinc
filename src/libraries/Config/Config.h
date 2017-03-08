@@ -58,27 +58,26 @@ public:
         {
             struct
             {
-                //--------------+--------------------------------------------------------------------+-------------+
-                //              |                           PulseWidth (us)                          | NumChannels |
-                //     Mode     +---------------+------+------+-------------+---------+------+-------+------+------+
-                //              | _frame_period | _pre | _min | _forced_min | _center | _max | _sync | _min | _max |
-                //--------------+---------------+------+------+-------------+---------+------+-------+------+------+
-                // Standard PPM |     20000     |  400 |  920 |    1800     |   1520  | 2120 |       |   4  |   8  |
-                // 9 channels   |     22500     |  400 |  920 |    1800     |   1520  | 2120 |       |   4  |   9  |
-                // PPMv2        |     20000     |  200 |  460 |     900     |    760  | 1060 |       |   4  |  16  |
-                // PPMv3        |     25000     |  400 |  750 |    1260     |   1050  | 1350 |       |   4  |  16  |  
-                //--------------+---------------+------+------+-------------+---------+------+-------+------+------+
+                // +--------------+----------------------------------------------+-------------+
+                // |              |                  PulseWidth (us)             | NumChannels |
+                // |     Mode     +---------------+------+------+---------+------+------+------+
+                // |              | _frame_period | _pre | _min | _switch | _max | _min | _max |
+                // +--------------+---------------+------+------+---------+------+------+------+
+                // | Standard PPM | 20000 (50 Hz) |  400 |  920 |   1800  | 2120 |   4  |   8  |
+                // | 9 channels   | 22500 (44 Hz) |  400 |  920 |   1800  | 2120 |   4  |   9  |
+                // | PPMv2        | 20000 (50 Hz) |  200 |  460 |    900  | 1060 |   4  |  16  |
+                // | PPMv3        | 25000 (40 Hz) |  400 |  750 |   1260  | 1350 |   4  |  16  |  
+                // +--------------+---------------+------+------+---------+------+------+------+
 
                 struct
                 {
                     struct
                     {
+                        uint16_t _frame_period;
                         uint16_t _pre;
                         uint16_t _min;
-                        uint16_t _forced_min;
+                        uint16_t _switch;
                         uint16_t _max;
-                        uint16_t _center;
-                        uint16_t _sync;
                     }
                     PulseWidth;
 
@@ -88,8 +87,6 @@ public:
                         uint8_t _max;
                     }
                     NumChannels;
-
-                    uint16_t _frame_period;
                 }
                 Primary;
 
@@ -97,11 +94,10 @@ public:
                 {
                     struct
                     {
+                        uint16_t _frame_period;
                         uint16_t _pre;
                         uint16_t _min;
                         uint16_t _max;
-                        uint16_t _center;
-                        uint16_t _sync;
                     }
                     PulseWidth;
 
@@ -111,8 +107,6 @@ public:
                         uint8_t _max;
                     }
                     NumChannels;
-
-                    uint16_t _frame_period;
                 }
                 Secondary;
             }
@@ -120,6 +114,35 @@ public:
 
             struct
             {
+                // +--------------+---------------+-----------------+
+                // |              |               | PulseWidth (us) |
+                // |     Mode     | _num_channels +--------+--------|
+                // |              |               |  _min  |  _max  |
+                // +--------------+---------------+--------+--------+
+                // | Standard PPM |       8       |   920  |  2120  |
+                // +--------------+---------------+--------+--------+
+
+                uint8_t  _num_channels;
+
+                struct
+                {
+                    uint16_t _min;
+                    uint16_t _max;
+                }
+                PulseWidth;
+
+                struct
+                {
+                    bool _average  : 1;
+                    bool _jitter   : 1;
+                    bool _unused_1 : 1;
+                    bool _unused_2 : 1;
+                    bool _unused_3 : 1;
+                    bool _unused_4 : 1;
+                    bool _unused_5 : 1;
+                    bool _unused_6 : 1;
+                }
+                Filters;
             }
             PWM;
         }
@@ -265,7 +288,7 @@ protected:
 // declare a scalar type
 // _t is the base type
 // _suffix is the suffix on the P* type name
-#define PARAMDEF(_t, _suffix)   typedef ParamT<_t> P ## _suffix;
+#define PARAMDEFT(_t, _suffix)   typedef ParamT<_t> P ## _suffix;
 
 // declare a non-scalar type
 // this is used in PMath.h
@@ -273,11 +296,12 @@ protected:
 // _suffix is the suffix on the P* type name
 #define PARAMDEFV(_t, _suffix)   typedef ParamV<_t> P ## _suffix;
 
-PARAMDEF(float   , Float ) // defines PFloat
-PARAMDEF(int8_t  , Int8  ) // defines PInt8
-PARAMDEF(int16_t , Int16 ) // defines PInt16
-PARAMDEF(int32_t , Int32 ) // defines PInt32
-PARAMDEF(uint8_t , UInt8 ) // defines PUInt8
-PARAMDEF(uint16_t, UInt16) // defines PUInt16
-PARAMDEF(uint32_t, UInt32) // defines PUInt32
-PARAMDEF(size_t  , Size  ) // defines PSize
+PARAMDEFT(float   , Float ) // defines PFloat
+PARAMDEFT(int8_t  , Int8  ) // defines PInt8
+PARAMDEFT(int16_t , Int16 ) // defines PInt16
+PARAMDEFT(int32_t , Int32 ) // defines PInt32
+PARAMDEFT(uint8_t , UInt8 ) // defines PUInt8
+PARAMDEFT(uint16_t, UInt16) // defines PUInt16
+PARAMDEFT(uint32_t, UInt32) // defines PUInt32
+PARAMDEFT(size_t  , Size  ) // defines PSize
+PARAMDEFV(bool    , Bool  ) // defines PBool

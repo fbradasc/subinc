@@ -25,7 +25,6 @@
 
 #include <Utils/Utils.h>
 #include <HAL/HAL.h>
-#include <Config/Config.h>
 #include <stdio.h>
 
 DECLARE_FIELD( PUInt16, Scheduler, _loop_rate_hz, DEFAULT_MAIN_LOOP_RATE );
