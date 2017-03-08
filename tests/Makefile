@@ -13,7 +13,8 @@ LD=ld $(LDFLAGS)
 
 LIB_SRC=\
 	 ../src/libraries/Debug/Debug.cpp \
-	 ../src/libraries/Config/Config.cpp
+	 ../src/libraries/Config/Config.cpp \
+	 ../src/libraries/RC/Input/RCInput.cpp
 
 LIB_OBJ=$(LIB_SRC:.cpp=.o)
 

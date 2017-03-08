@@ -14,27 +14,26 @@
  */
 
 #include <RC/Input/RCInput.h>
-#include <Config/Config.h>
 
-#include <stdio.h>
+#include <Debug/Debug.h>
 
 // PPM input frame mode receiver 1
 // -------------------------------------------------------------
-//#define PPM_PRI "STANDARD"    // Standard PPM : 1520 us +/- 600 us - 8 channels - 20 ms frame period
-//#define PPM_PRI "EXTENDED"    // 9 channels : 1520 us +/- 600 us - 9 channels - 22.1 ms slower frame period
-//#define PPM_PRI "V2"          // PPMv2 : 760 us +/- 300 us - 16 Channels - normal 20 ms frame period
-#define PPM_PRI "V3"            // PPMv3 16 channels with long sync symbol : 1050 us +/- 300 us - 25 ms frame period
+//#define PPM_PRI PPM_STANDARD    // Standard PPM : 1520 us +/- 600 us - 8 channels - 20 ms frame period
+//#define PPM_PRI PPM_EXTENDED    // 9 channels : 1520 us +/- 600 us - 9 channels - 22.1 ms slower frame period
+//#define PPM_PRI PPM_V2          // PPMv2 : 760 us +/- 300 us - 16 Channels - normal 20 ms frame period
+#define PPM_PRI PPM_V3            // PPMv3 16 channels with long sync symbol : 1050 us +/- 300 us - 25 ms frame period
 
 // PPM input frame mode receiver 2
 // -------------------------------------------------------------
-//#define PPM_SEC "STANDARD"
-#define PPM_SEC "EXTENDED"
-//#define PPM_SEC "V2"
-//#define PPM_SEC "V3"
+//#define PPM_SEC PPM_STANDARD
+#define PPM_SEC PPM_EXTENDED
+//#define PPM_SEC PPM_V2
+//#define PPM_SEC PPM_V3
 
 // PPM1 input : frame formats definitions
 // -------------------------------------------------------------
-#if ( PPM_PRI == "STANDARD" )
+#if ( PPM_PRI == PPM_STANDARD )
 
 #  define PPM_PRI_CH_MIN                 4
 #  define PPM_PRI_CH_MAX                 8
@@ -44,7 +43,7 @@
 #  define PPM_PRI_PW_SWITCH           1800
 #  define PPM_PRI_PW_PREPULSE_LENGHT   400
 
-#elif ( PPM_PRI "EXTENDED" )
+#elif ( PPM_PRI == PPM_EXTENDED )
 
 #  define PPM_PRI_CH_MIN                 4
 #  define PPM_PRI_CH_MAX                 9
@@ -54,7 +53,7 @@
 #  define PPM_PRI_PW_SWITCH           1800
 #  define PPM_PRI_PW_PREPULSE_LENGHT   400
 
-#elif ( PPM_PRI == "V2" ) // PPMv2 is a 50 Hz 16 channels mode
+#elif ( PPM_PRI == PPM_V2 ) // PPMv2 is a 50 Hz 16 channels mode
 
 #  define PPM_PRI_CH_MIN                 4
 #  define PPM_PRI_CH_MAX                16
@@ -64,7 +63,7 @@
 #  define PPM_PRI_PW_SWITCH            900
 #  define PPM_PRI_PW_PREPULSE_LENGHT   200
 
-#elif ( PPM_PRI == "V3" ) //  PPMv3 is a 40 Hz slower refresh rate 16 channels mode
+#elif ( PPM_PRI == PPM_V3 ) //  PPMv3 is a 40 Hz slower refresh rate 16 channels mode
 
 #  define PPM_PRI_CH_MIN                 4
 #  define PPM_PRI_CH_MAX                16
@@ -82,7 +81,7 @@
 
 // PPM2 input : frame formats definitions
 // -------------------------------------------------------------
-#if ( PPM_SEC == "STANDARD" )
+#if ( PPM_SEC == PPM_STANDARD )
 
 #  define PPM_SEC_CH_MIN                 4
 #  define PPM_SEC_CH_MAX                 8
@@ -92,7 +91,7 @@
 #  define PPM_SEC_PW_SWITCH           1800
 #  define PPM_SEC_PW_PREPULSE_LENGHT   400
 
-#elif (PPM_SEC == "EXTENDED" )
+#elif (PPM_SEC == PPM_EXTENDED )
 
 #  define PPM_SEC_CH_MIN                 4
 #  define PPM_SEC_CH_MAX                 9
@@ -102,7 +101,7 @@
 #  define PPM_SEC_PW_SWITCH           1800
 #  define PPM_SEC_PW_PREPULSE_LENGHT   400
 
-#elif ( PPM_SEC == "V2" ) // PPMv2 is a 50 Hz 16 channels mode
+#elif ( PPM_SEC == PPM_V2 ) // PPMv2 is a 50 Hz 16 channels mode
 
 #  define PPM_SEC_CH_MIN                 4
 #  define PPM_SEC_CH_MAX                16
@@ -112,7 +111,7 @@
 #  define PPM_SEC_PW_SWITCH            900
 #  define PPM_SEC_PW_PREPULSE_LENGHT   200
 
-#elif ( PPM_SEC == "V3" ) //  PPMv3 is a 40 Hz slower refresh rate 16 channels mode
+#elif ( PPM_SEC == PPM_V3 ) //  PPMv3 is a 40 Hz slower refresh rate 16 channels mode
 
 #  define PPM_SEC_CH_MIN                 4
 #  define PPM_SEC_CH_MAX                16
@@ -138,23 +137,43 @@
 #define PWM_AVERAGE_FILTER  true
 #define PWM_JITTER_FILTER  false
 
-DECLARE_FIELD( PUint16, RCInput.PPM.Primary.PulseWidth   , _frame_period, PPM_PRI_PW_FRAME_PERIOD    );
-DECLARE_FIELD( PUint16, RCInput.PPM.Primary.PulseWidth   , _pre         , PPM_PRI_PW_PREPULSE_LENGHT );
-DECLARE_FIELD( PUint16, RCInput.PPM.Primary.PulseWidth   , _min         , PPM_PRI_PW_MIN             );
-DECLARE_FIELD( PUint16, RCInput.PPM.Primary.PulseWidth   , _switch      , PPM_PRI_PW_SWITCH          );
-DECLARE_FIELD( PUint16, RCInput.PPM.Primary.PulseWidth   , _max         , PPM_PRI_PW_MAX             );
-DECLARE_FIELD( PUint8 , RCInput.PPM.Primary.NumChannels  , _min         , PPM_PRI_CH_MIN             );
-DECLARE_FIELD( PUint8 , RCInput.PPM.Primary.NumChannels  , _max         , PPM_PRI_CH_MAX             );
-
-DECLARE_FIELD( PUint16, RCInput.PPM.Secondary.PulseWidth , _frame_period, PPM_SEC_PW_FRAME_PERIOD    );
-DECLARE_FIELD( PUint16, RCInput.PPM.Secondary.PulseWidth , _pre         , PPM_SEC_PW_PREPULSE_LENGHT );
-DECLARE_FIELD( PUint16, RCInput.PPM.Secondary.PulseWidth , _min         , PPM_SEC_PW_MIN             );
-DECLARE_FIELD( PUint16, RCInput.PPM.Secondary.PulseWidth , _max         , PPM_SEC_PW_MAX             );
-DECLARE_FIELD( PUint8 , RCInput.PPM.Secondary.NumChannels, _min         , PPM_SEC_CH_MIN             );
-DECLARE_FIELD( PUint8 , RCInput.PPM.Secondary.NumChannels, _max         , PPM_SEC_CH_MAX             );
-                                                                          
-DECLARE_FIELD( PUint8 , RCInput.PWM                      , _num_channels, PWM_CH_NUM                 );
-DECLARE_FIELD( PUint16, RCInput.PWM.PulseWidth           , _min         , PWM_PW_MIN                 );
-DECLARE_FIELD( PUint16, RCInput.PWM.PulseWidth           , _max         , PWM_PW_MAX                 );
-DECLARE_FIELD( PBool  , RCInput.PWM.Filters              , _average     , PWM_AVERAGE_FILTER         );
-DECLARE_FIELD( PBool  , RCInput.PWM.Filters              , _jitter      , PWM_JITTER_FILTER          );
+class RCInput {
+    class PPM {
+        class Primary {
+            class PulseWidth {
+                DECLARE_FIELD( PUInt16, RCInput.PPM.Primary.PulseWidth   , _frame_period, PPM_PRI_PW_FRAME_PERIOD    );
+                DECLARE_FIELD( PUInt16, RCInput.PPM.Primary.PulseWidth   , _pre         , PPM_PRI_PW_PREPULSE_LENGHT );
+                DECLARE_FIELD( PUInt16, RCInput.PPM.Primary.PulseWidth   , _min         , PPM_PRI_PW_MIN             );
+                DECLARE_FIELD( PUInt16, RCInput.PPM.Primary.PulseWidth   , _switch      , PPM_PRI_PW_SWITCH          );
+                DECLARE_FIELD( PUInt16, RCInput.PPM.Primary.PulseWidth   , _max         , PPM_PRI_PW_MAX             );
+            };
+            class NumChannels {
+                DECLARE_FIELD( PUInt8 , RCInput.PPM.Primary.NumChannels  , _min         , PPM_PRI_CH_MIN             );
+                DECLARE_FIELD( PUInt8 , RCInput.PPM.Primary.NumChannels  , _max         , PPM_PRI_CH_MAX             );
+            };
+        };
+        class Secondary {
+            class PulseWidth {
+                DECLARE_FIELD( PUInt16, RCInput.PPM.Secondary.PulseWidth , _frame_period, PPM_SEC_PW_FRAME_PERIOD    );
+                DECLARE_FIELD( PUInt16, RCInput.PPM.Secondary.PulseWidth , _pre         , PPM_SEC_PW_PREPULSE_LENGHT );
+                DECLARE_FIELD( PUInt16, RCInput.PPM.Secondary.PulseWidth , _min         , PPM_SEC_PW_MIN             );
+                DECLARE_FIELD( PUInt16, RCInput.PPM.Secondary.PulseWidth , _max         , PPM_SEC_PW_MAX             );
+            };
+            class NumChannels {
+                DECLARE_FIELD( PUInt8 , RCInput.PPM.Secondary.NumChannels, _min         , PPM_SEC_CH_MIN             );
+                DECLARE_FIELD( PUInt8 , RCInput.PPM.Secondary.NumChannels, _max         , PPM_SEC_CH_MAX             );
+            };
+        };
+    };
+    class PWM {
+        DECLARE_FIELD( PUInt8 , RCInput.PWM                      , _num_channels, PWM_CH_NUM                 );
+        class PulseWidth {
+            DECLARE_FIELD( PUInt16, RCInput.PWM.PulseWidth           , _min         , PWM_PW_MIN                 );
+            DECLARE_FIELD( PUInt16, RCInput.PWM.PulseWidth           , _max         , PWM_PW_MAX                 );
+        };
+        class Filters {
+            DECLARE_FIELD( PBool  , RCInput.PWM.Filters              , _average     , PWM_AVERAGE_FILTER         );
+            DECLARE_FIELD( PBool  , RCInput.PWM.Filters              , _jitter      , PWM_JITTER_FILTER          );
+        };
+    };
+};

@@ -15,7 +15,7 @@
 
 #pragma once
 
-#include <Debug/Debug.h>
+#include <Config/Config.h>
 
 class RCInput
 {
