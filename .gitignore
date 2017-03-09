@@ -1,1 +1,7 @@
 *~
+*.swp
+*.o
+*.d
+tags
+tests/config
+tests/debug
