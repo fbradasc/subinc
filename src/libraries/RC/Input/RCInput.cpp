@@ -17,17 +17,22 @@
 
 #include <Debug/Debug.h>
 
+#define PPM_STANDARD  1  // Standard PPM : 1520 us +/- 600 us -  8 channels - 20   ms frame period
+#define PPM_EXTENDED  2  // 9 channels   : 1520 us +/- 600 us -  9 channels - 22.5 ms frame period
+#define PPM_V2        3  // PPMv2        :  760 us +/- 300 us - 16 channels - 20   ms frame period
+#define PPM_V3        4  // PPMv3        : 1050 us +/- 300 us - 16 channels - 25   ms frame period
+
 // PPM input frame mode receiver 1
 // -------------------------------------------------------------
-//#define PPM_PRI PPM_STANDARD    // Standard PPM : 1520 us +/- 600 us - 8 channels - 20 ms frame period
-//#define PPM_PRI PPM_EXTENDED    // 9 channels : 1520 us +/- 600 us - 9 channels - 22.1 ms slower frame period
-//#define PPM_PRI PPM_V2          // PPMv2 : 760 us +/- 300 us - 16 Channels - normal 20 ms frame period
-#define PPM_PRI PPM_V3            // PPMv3 16 channels with long sync symbol : 1050 us +/- 300 us - 25 ms frame period
+//#define PPM_PRI PPM_STANDARD
+//#define PPM_PRI PPM_EXTENDED
+//#define PPM_PRI PPM_V2
+//#define PPM_PRI PPM_V3
 
 // PPM input frame mode receiver 2
 // -------------------------------------------------------------
 //#define PPM_SEC PPM_STANDARD
-#define PPM_SEC PPM_EXTENDED
+//#define PPM_SEC PPM_EXTENDED
 //#define PPM_SEC PPM_V2
 //#define PPM_SEC PPM_V3
 
@@ -138,7 +143,7 @@
 #define PWM_AVERAGE_FILTER  (0x01 << 0)
 #define PWM_JITTER_FILTER   (0x01 << 1)
 
-namespace RCInputData
+namespace _RCInput
 {
     namespace PPM
     {
@@ -186,3 +191,50 @@ namespace RCInputData
         };
     };
 };
+
+void RCInput::init(void* implspecific)
+{
+}
+
+void RCInput::deinit()
+{
+}
+
+bool RCInput::new_input()
+{
+    return false;
+}
+
+uint8_t RCInput::num_channels()
+{
+    return 0;
+}
+
+uint16_t RCInput::read(uint8_t ch)
+{
+    return 0;
+}
+
+uint8_t RCInput::read(uint16_t* periods, uint8_t len)
+{
+    return 0;
+}
+
+bool RCInput::set_overrides(int16_t *overrides, uint8_t len)
+{
+    return false;
+}
+
+bool RCInput::set_override(uint8_t channel, int16_t override)
+{
+    return false;
+}
+
+void RCInput::clear_overrides()
+{
+}
+
+bool RCInput::rc_bind(int dsmMode)
+{
+    return false;
+}

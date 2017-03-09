@@ -26,8 +26,8 @@ public:
      * known to the programmer. (Its too difficult to describe this dependency
      * in the C++ type system.)
      */
-    virtual void init(void* implspecific) {}
-    virtual void deinit() {}
+    void init(void* implspecific);
+    void deinit();
 
     /**
      * Return true if there has been new input since the last read()
@@ -35,18 +35,18 @@ public:
      * returns true it won't return true again until another frame is
      * received.
      */
-    virtual bool new_input() { return false; }
+    bool new_input();
 
     /**
      * Return the number of valid channels in the last read
      */
-    virtual uint8_t  num_channels() { return 0; }
+    uint8_t num_channels();
 
     /* Read a single channel at a time */
-    virtual uint16_t read(uint8_t ch) { return 0; }
+    uint16_t read(uint8_t ch);
 
     /* Read an array of channels, return the valid count */
-    virtual uint8_t read(uint16_t* periods, uint8_t len) { return 0; }
+    uint8_t read(uint16_t* periods, uint8_t len);
 
     /**
      * Overrides: these are really grody and don't belong here but we need
@@ -58,12 +58,12 @@ public:
      */
 
     /* set_overrides: array starts at ch 0, for len channels */
-    virtual bool set_overrides(int16_t *overrides, uint8_t len) { return false; }
+    bool set_overrides(int16_t *overrides, uint8_t len);
     /* set_override: set just a specific channel */
-    virtual bool set_override(uint8_t channel, int16_t override) { return false; }
+    bool set_override(uint8_t channel, int16_t override);
     /* clear_overrides: equivelant to setting all overrides to 0 */
-    virtual void clear_overrides() {}
+    void clear_overrides();
 
     /* execute receiver bind */
-    virtual bool rc_bind(int dsmMode) { return false; };
+    bool rc_bind(int dsmMode);
 };

@@ -3,7 +3,7 @@ DBGFLAGS=
 ifeq ($(DEBUG),on)
 DBGFLAGS=-DDEBUG
 endif
-CPPFLAGS=-I../src/libraries $(DBGFLAGS)
+CPPFLAGS=-I../src/libraries $(DBGFLAGS) -DPPM_PRI=2 -DPPM_SEC=4
 CXXFLAGS=-g -std=c++11
 CFLAGS=-g
 
