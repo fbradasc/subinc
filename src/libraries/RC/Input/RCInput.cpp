@@ -134,46 +134,55 @@
 #define PWM_CH_NUM             8
 #define PWM_PW_MIN           920
 #define PWM_PW_MAX          2120
-#define PWM_AVERAGE_FILTER  true
-#define PWM_JITTER_FILTER  false
 
-class RCInput {
-    class PPM {
-        class Primary {
-            class PulseWidth {
-                DECLARE_FIELD( PUInt16, RCInput.PPM.Primary.PulseWidth   , _frame_period, PPM_PRI_PW_FRAME_PERIOD    );
-                DECLARE_FIELD( PUInt16, RCInput.PPM.Primary.PulseWidth   , _pre         , PPM_PRI_PW_PREPULSE_LENGHT );
-                DECLARE_FIELD( PUInt16, RCInput.PPM.Primary.PulseWidth   , _min         , PPM_PRI_PW_MIN             );
-                DECLARE_FIELD( PUInt16, RCInput.PPM.Primary.PulseWidth   , _switch      , PPM_PRI_PW_SWITCH          );
-                DECLARE_FIELD( PUInt16, RCInput.PPM.Primary.PulseWidth   , _max         , PPM_PRI_PW_MAX             );
+#define PWM_AVERAGE_FILTER  (0x01 << 0)
+#define PWM_JITTER_FILTER   (0x01 << 1)
+
+namespace RCInputData
+{
+    namespace PPM
+    {
+        namespace Primary
+        {
+            namespace PulseWidth
+            {
+                DECLARE_FIELD( PUInt16, RCInput.PPM.Primary.PulseWidth, _frame_period, PPM_PRI_PW_FRAME_PERIOD    );
+                DECLARE_FIELD( PUInt16, RCInput.PPM.Primary.PulseWidth, _pre         , PPM_PRI_PW_PREPULSE_LENGHT );
+                DECLARE_FIELD( PUInt16, RCInput.PPM.Primary.PulseWidth, _min         , PPM_PRI_PW_MIN             );
+                DECLARE_FIELD( PUInt16, RCInput.PPM.Primary.PulseWidth, _switch      , PPM_PRI_PW_SWITCH          );
+                DECLARE_FIELD( PUInt16, RCInput.PPM.Primary.PulseWidth, _max         , PPM_PRI_PW_MAX             );
             };
-            class NumChannels {
-                DECLARE_FIELD( PUInt8 , RCInput.PPM.Primary.NumChannels  , _min         , PPM_PRI_CH_MIN             );
-                DECLARE_FIELD( PUInt8 , RCInput.PPM.Primary.NumChannels  , _max         , PPM_PRI_CH_MAX             );
+            namespace NumChannels
+            {
+                DECLARE_FIELD( PUInt8, RCInput.PPM.Primary.NumChannels, _min, PPM_PRI_CH_MIN );
+                DECLARE_FIELD( PUInt8, RCInput.PPM.Primary.NumChannels, _max, PPM_PRI_CH_MAX );
             };
         };
-        class Secondary {
-            class PulseWidth {
-                DECLARE_FIELD( PUInt16, RCInput.PPM.Secondary.PulseWidth , _frame_period, PPM_SEC_PW_FRAME_PERIOD    );
-                DECLARE_FIELD( PUInt16, RCInput.PPM.Secondary.PulseWidth , _pre         , PPM_SEC_PW_PREPULSE_LENGHT );
-                DECLARE_FIELD( PUInt16, RCInput.PPM.Secondary.PulseWidth , _min         , PPM_SEC_PW_MIN             );
-                DECLARE_FIELD( PUInt16, RCInput.PPM.Secondary.PulseWidth , _max         , PPM_SEC_PW_MAX             );
+        namespace Secondary
+        {
+            namespace PulseWidth
+            {
+                DECLARE_FIELD( PUInt16, RCInput.PPM.Secondary.PulseWidth, _frame_period, PPM_SEC_PW_FRAME_PERIOD    );
+                DECLARE_FIELD( PUInt16, RCInput.PPM.Secondary.PulseWidth, _pre         , PPM_SEC_PW_PREPULSE_LENGHT );
+                DECLARE_FIELD( PUInt16, RCInput.PPM.Secondary.PulseWidth, _min         , PPM_SEC_PW_MIN             );
+                DECLARE_FIELD( PUInt16, RCInput.PPM.Secondary.PulseWidth, _max         , PPM_SEC_PW_MAX             );
             };
-            class NumChannels {
-                DECLARE_FIELD( PUInt8 , RCInput.PPM.Secondary.NumChannels, _min         , PPM_SEC_CH_MIN             );
-                DECLARE_FIELD( PUInt8 , RCInput.PPM.Secondary.NumChannels, _max         , PPM_SEC_CH_MAX             );
+            namespace NumChannels
+            {
+                DECLARE_FIELD( PUInt8, RCInput.PPM.Secondary.NumChannels, _min, PPM_SEC_CH_MIN );
+                DECLARE_FIELD( PUInt8, RCInput.PPM.Secondary.NumChannels, _max, PPM_SEC_CH_MAX );
             };
         };
     };
-    class PWM {
-        DECLARE_FIELD( PUInt8 , RCInput.PWM                      , _num_channels, PWM_CH_NUM                 );
-        class PulseWidth {
-            DECLARE_FIELD( PUInt16, RCInput.PWM.PulseWidth           , _min         , PWM_PW_MIN                 );
-            DECLARE_FIELD( PUInt16, RCInput.PWM.PulseWidth           , _max         , PWM_PW_MAX                 );
-        };
-        class Filters {
-            DECLARE_FIELD( PBool  , RCInput.PWM.Filters              , _average     , PWM_AVERAGE_FILTER         );
-            DECLARE_FIELD( PBool  , RCInput.PWM.Filters              , _jitter      , PWM_JITTER_FILTER          );
+    namespace PWM
+    {
+        DECLARE_FIELD( PUInt8, RCInput.PWM, _num_channels, PWM_CH_NUM         );
+        DECLARE_FIELD( PUInt8, RCInput.PWM, _filters     , PWM_AVERAGE_FILTER );
+
+        namespace PulseWidth
+        {
+            DECLARE_FIELD( PUInt16, RCInput.PWM.PulseWidth, _min, PWM_PW_MIN );
+            DECLARE_FIELD( PUInt16, RCInput.PWM.PulseWidth, _max, PWM_PW_MAX );
         };
     };
 };

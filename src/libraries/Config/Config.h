@@ -122,7 +122,8 @@ public:
                 // | Standard PPM |       8       |   920  |  2120  |
                 // +--------------+---------------+--------+--------+
 
-                uint8_t  _num_channels;
+                uint8_t _num_channels;
+                uint8_t _filters;
 
                 struct
                 {
@@ -130,19 +131,6 @@ public:
                     uint16_t _max;
                 }
                 PulseWidth;
-
-                struct
-                {
-                    bool _average  : 1;
-                    bool _jitter   : 1;
-                    bool _unused_1 : 1;
-                    bool _unused_2 : 1;
-                    bool _unused_3 : 1;
-                    bool _unused_4 : 1;
-                    bool _unused_5 : 1;
-                    bool _unused_6 : 1;
-                }
-                Filters;
             }
             PWM;
         }
@@ -304,4 +292,3 @@ PARAMDEFT(uint8_t , UInt8 ) // defines PUInt8
 PARAMDEFT(uint16_t, UInt16) // defines PUInt16
 PARAMDEFT(uint32_t, UInt32) // defines PUInt32
 PARAMDEFT(size_t  , Size  ) // defines PSize
-PARAMDEFV(bool    , Bool  ) // defines PBool
