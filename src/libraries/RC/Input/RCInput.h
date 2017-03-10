@@ -17,9 +17,27 @@
 
 #include <Config/Config.h>
 
+#define RC_INPUT_NUM_CHANNELS 16
+
 class RCInput
 {
 public:
+    enum Status
+    {
+        SUCCESS = 0,
+
+        // State conditions
+        //
+        UNCHANGED = 1,
+        CHANGED   = 2,
+
+        // Errors values
+        //
+        OUT_OF_BOUND = -1,
+    };
+
+    RCInput();
+
     /**
      * Call init from the platform hal instance init, so that both the type of
      * the RCInput implementation and init argument (e.g. ISRRegistry) are
@@ -35,12 +53,21 @@ public:
      * returns true it won't return true again until another frame is
      * received.
      */
-    bool new_input();
+    inline bool new_input()
+    {
+        if (_new_input)
+        {
+            _new_input = false;
+
+            return true;
+        }
+        return false;
+    }
 
     /**
      * Return the number of valid channels in the last read
      */
-    uint8_t num_channels();
+    inline uint8_t num_channels() { return _num_channels; }
 
     /* Read a single channel at a time */
     uint16_t read(uint8_t ch);
@@ -65,5 +92,10 @@ public:
     void clear_overrides();
 
     /* execute receiver bind */
-    bool rc_bind(int dsmMode);
+    bool rc_bind(int dsm_mode);
+
+private:
+    static volatile bool     _new_input   ;
+    static volatile uint8_t  _num_channels;
+    uint16_t                 _overrides[RC_INPUT_NUM_CHANNELS];
 };

@@ -192,46 +192,148 @@ namespace _RCInput
     };
 };
 
+static volatile bool     RCInput::_new_input    = false;
+static volatile uint8_t  RCInput::_num_channels = 0;
+
+// AVR parameters for PhoneDrone and APM2 boards using ATmega32u2
+#if defined (__AVR_ATmega16U2__) || defined (__AVR_ATmega32U2__)
+#  define enter_cs()  { uint8_t __AVR_Critical_Section_SREG__ = SREG; cli();
+#  define leave_cs()  SREG = __AVR_Critical_Section_SREG__; }
+#else
+#  define enter_cs()  {
+#  define leave_cs()  }
+#endif
+
+/* constrain captured pulse to be between min and max pulsewidth. */
+static inline uint16_t constrain_pulse(uint16_t p)
+{
+#if defined (__AVR_ATmega16U2__) || defined (__AVR_ATmega32U2__)
+    p >>= 1;
+#endif
+    if (p > RC_INPUT_MAX_PULSEWIDTH)
+    {
+        return RC_INPUT_MAX_PULSEWIDTH;
+    }
+
+    if (p < RC_INPUT_MIN_PULSEWIDTH)
+    {
+        return RC_INPUT_MIN_PULSEWIDTH;
+    }
+
+    return p;
+}
+
+
+RCInput::RCInput(): _new_input(0), _num_channels(-1)
+{
+}
+
 void RCInput::init(void* implspecific)
 {
+    clear_overrides();
 }
 
 void RCInput::deinit()
 {
 }
 
-bool RCInput::new_input()
-{
-    return false;
-}
-
-uint8_t RCInput::num_channels()
-{
-    return 0;
-}
-
 uint16_t RCInput::read(uint8_t ch)
 {
-    return 0;
+    /* constrain ch */
+    if (ch >= RC_INPUT_NUM_CHANNELS)
+    {
+        return 0;
+    }
+
+    if (_override[ch] != 0)
+    {
+        return _override[ch];
+    }
+
+    uint16_t capt;
+
+    enter_cs();
+
+    capt = _pulse_capt[ch];
+
+    leave_cs();
+
+    return constrain_pulse(capt);
 }
 
 uint8_t RCInput::read(uint16_t* periods, uint8_t len)
 {
-    return 0;
+    /* constrain len 
+     */
+    if (len > RC_INPUT_NUM_CHANNELS)
+    {
+        len = RC_INPUT_NUM_CHANNELS;
+    }
+
+    enter_cs();
+
+    for (uint8_t i = 0; i < len; i++) {
+        periods[i] = _pulse_capt[i];
+    }
+
+    leave_cs();
+
+    /* Outside of critical section, do the math (in place) to scale and
+     * constrain the pulse.
+     */
+    for (uint8_t i = 0; i < len; i++)
+    {
+        periods[i] = (_override[i] != 0) ? _override[i] : constrain_pulse(periods[i]);
+    }
+
+    return _num_channels;
 }
 
-bool RCInput::set_overrides(int16_t *overrides, uint8_t len)
+bool RCInput::set_overrides(int16_t *overrides, uint8_t len) 
 {
-    return false;
+    bool res = false;
+
+    if (len > RC_INPUT_NUM_CHANNELS)
+    {
+        len = RC_INPUT_NUM_CHANNELS;
+    }
+
+    for (uint8_t i = 0; i < len; i++)
+    {
+        res |= set_override(i, overrides[i]);
+    }
+    
+    return res;
 }
 
-bool RCInput::set_override(uint8_t channel, int16_t override)
+bool LinuxRCInput::set_override(uint8_t channel, int16_t override) 
 {
+    if (override < 0)
+    {
+        return false; /* -1: no change. */
+    }
+
+    if (channel < RC_INPUT_NUM_CHANNELS)
+    {
+        _override[channel] = override;
+
+        if (override != 0)
+        {
+            _new_input = true;
+
+            return true;
+        }
+    }
+
     return false;
 }
 
 void RCInput::clear_overrides()
 {
+    for (uint8_t i = 0; i < RC_INPUT_NUM_CHANNELS; i++)
+    {
+        _override[i] = 0;
+    }
 }
 
 bool RCInput::rc_bind(int dsmMode)
