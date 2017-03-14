@@ -24,8 +24,8 @@ class RCInput
 public:
     enum ChannelValueRange
     {
-        NOP = -1,
-        MIN = 0,
+        NOP =     -1,
+        MIN =      0,
         MAX = 0x7fff
     };
 
@@ -139,7 +139,7 @@ private:
      *
      * Return:
      *
-     *      v : [0,0x7fff]
+     *      v : [ChannelValueRange::MIN, ChannelValueRange::MAX]
      */
     static inline uint16_t pw_value(uint16_t p);
 };

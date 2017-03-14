@@ -13,6 +13,8 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <climits> // for SHRT_MIN
+
 #include <RC/Input/RCInput.h>
 
 #include <Debug/Debug.h>
@@ -132,6 +134,8 @@
 
 #endif
 
+#define PPM_SWITCHOVER_CHANNEL 9
+
 // -------------------------------------------------------------
 // SERVO PWM MODE input settings
 // -------------------------------------------------------------
@@ -149,6 +153,8 @@ namespace _RCInput
     {
         namespace Primary
         {
+            DECLARE_FIELD( PUInt8, RCInput.PPM.Primary, _switchover_channel, PPM_SWITCHOVER_CHANNEL );
+
             namespace PulseWidth
             {
                 DECLARE_FIELD( PUInt16, RCInput.PPM.Primary.PulseWidth, _frame_period, PPM_PRI_PW_FRAME_PERIOD    );
@@ -181,8 +187,9 @@ namespace _RCInput
     };
     namespace PWM
     {
-        DECLARE_FIELD( PUInt8, RCInput.PWM, _num_channels, PWM_CH_NUM         );
-        DECLARE_FIELD( PUInt8, RCInput.PWM, _filters     , PWM_AVERAGE_FILTER );
+        DECLARE_FIELD( PUInt8, RCInput.PWM, _num_channels   , PWM_CH_NUM );
+        DECLARE_FIELD( PUInt8, RCInput.PWM, _jitter_filter  , SHRT_MIN   );
+        DECLARE_FIELD( PUInt8, RCInput.PWM, _average_filters, false      );
 
         namespace PulseWidth
         {

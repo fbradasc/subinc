@@ -71,6 +71,8 @@ public:
 
                 struct
                 {
+                    uint8_t _switchover_channel;
+
                     struct
                     {
                         uint16_t _frame_period;
