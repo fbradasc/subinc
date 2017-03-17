@@ -67,17 +67,19 @@ PPMInput::PPMInput
 
 void PPMInput::preprocess(bool pin_changed, bool pin_high, uint16_t current_time)
 {
+	uint16_t prepulse_width = 0xffff;
+
 	if ( pin_changed )
 	{
 		// Check if we've got a high level (raising edge, channel start or sync symbol end)
 
 		if ( pin_high )
 		{
-			// Check for pre pulse lenght
+			// Check for pre pulse length
 
-			_prepulse_width = current_time - _prepulse_start;
+			prepulse_width = current_time - _prepulse_start;
 
-			if ( true ) //Todo optionnal: We could add a test here for channel pre pulse lenght check
+			if ( true ) //Todo optional: We could add a test here for channel pre pulse lenght check
 			{
 				//We have a valid pre pulse -> Check for last channel
 
@@ -308,3 +310,53 @@ void PPMInput::channel_count()
         }
     }
 }
+
+/* private callback for input capture ISR */
+void PPMInput::capture(const uint16_t curr_time)
+{
+    static uint16_t prev_time;
+    static uint8_t  channel_ctr;
+
+    uint16_t pulse_width;
+
+    if (curr_time < prev_time)
+    {
+        /* ICR4 rolls over at TOP=40000 */
+        pulse_width = curr_time + 40000 - prev_time;
+    }
+    else
+    {
+        pulse_width = curr_time - prev_time;
+    }
+
+    if (pulse_width > AVR_RC_INPUT_MIN_SYNC_PULSE_WIDTH*2)
+    {
+        // sync pulse detected.  Pass through values if at least a minimum number of channels received
+        if (channel_ctr >= AVR_RC_INPUT_MIN_CHANNELS)
+        {
+            _num_channels = channel_ctr;
+            _new_input    = true;
+        }
+
+        channel_ctr = 0;
+    }
+    else
+    {
+        if (channel_ctr < AVR_RC_INPUT_NUM_CHANNELS)
+        {
+            _pulse_capt[channel_ctr] = pulse_width;
+
+            channel_ctr++;
+
+            if (channel_ctr == AVR_RC_INPUT_NUM_CHANNELS)
+            {
+                _num_channels = AVR_RC_INPUT_NUM_CHANNELS;
+                _new_input    = true;
+            }
+        }
+    }
+
+    prev_time = curr_time;
+}
+
+

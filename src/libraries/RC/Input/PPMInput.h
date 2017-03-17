@@ -12,6 +12,12 @@
  * 
  * // Read current servo timer
  * uint16_t servo_time = SERVO_TIMER_CNT;
+ * 
+ * // Store current PPM inputs pins
+ * servo_pins = SERVO_INPUT;
+ *
+ * // Calculate servo input pin change mask
+ * uint8_t servo_change = servo_pins ^ servo_pins_old;
  *
  * if (servo_input_mode == PPM_REDUDANCY)
  * {
@@ -46,12 +52,6 @@
  *     // -----------------------------------
  *     // decoder
  *     // -----------------------------------
- * 
- *     // Store current PPM inputs pins
- *     servo_pins = SERVO_INPUT;
- *
- *     // Calculate servo input pin change mask
- *     uint8_t servo_change = servo_pins ^ servo_pins_old;
  *
  *     // -----------------------------------
  *     // Ch1 decoding
@@ -107,10 +107,10 @@
  *     // -----------------------------------
  * 
  *     ppm2.channel_count();
- *
- *     // Store current servo input pins for next check
- *     servo_pins_old = servo_pins;
  * }
+ *
+ * // Store current servo input pins for next check
+ * servo_pins_old = servo_pins;
  *
  *****************************************************************************/
 pragma once;
