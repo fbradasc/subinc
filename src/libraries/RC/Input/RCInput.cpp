@@ -184,9 +184,9 @@ namespace _RCInput
     };
     namespace PWM
     {
-        DECLARE_FIELD( PUInt8, RCInput.PWM, _num_channels   , PWM_CH_NUM );
-        DECLARE_FIELD( PUInt8, RCInput.PWM, _jitter_filter  , SHRT_MIN   );
-        DECLARE_FIELD( PUInt8, RCInput.PWM, _average_filters, false      );
+        DECLARE_FIELD( PUInt8, RCInput.PWM, _num_channels  , PWM_CH_NUM );
+        DECLARE_FIELD( PInt16, RCInput.PWM, _jitter_filter , SHRT_MIN   );
+        DECLARE_FIELD( PBool , RCInput.PWM, _average_filter, false      );
 
         namespace PulseWidth
         {
@@ -242,13 +242,15 @@ RCInput::RCInput()
 #if defined (__AVR_ATmega16U2__) || defined (__AVR_ATmega32U2__) || defined (__AVR_ATmega328P__) || defined (__AVR_ATmega328__)
 #  define enter_cs()  uint8_t __AVR_Critical_Section_SREG__ = SREG; cli();
 #  define leave_cs()  SREG = __AVR_Critical_Section_SREG__;
-#  define pw_scale(p) ((p) >> 1) // scale pulse from 0.5us units to 1us units.
 #  define delay_us(d) _delay_us((d))
+#  define Timer.usToTicks(t)         ((t) << 1) // scale pulse from 1us units to 0.5us units.
+#  define Timer.ticksToUs(t)         ((t) >> 1) // scale pulse from 0.5us units to 1us units.
 #else
 #  define enter_cs()
 #  define leave_cs()
-#  define pw_scale(p) (p)
 #  define delay_us(d) 
+#  define Timer.usToTicks(t)         (t)
+#  define Timer.ticksToUs(t)         (t)
 #endif
 
 #define non_blocking_read(to, from) for(to=(from); to!=(from); to=(from));
@@ -313,6 +315,7 @@ RCInput::RCInput()
 #define Servo.reset()              SERVO_DDR = 0x00; SERVO_PORT |= 0xff;
 #define Servo.setInterruptsMask(m) SERVO_INT_MASK = (m);
 #define Timer.get()                TIMER_REG_VALUE
+#define Timer.difftime(c,p)        ((c) < (p)) ? ((c) + TIMER_ROLLUP - (p)) : ((c) - (p))
 
 void RCInput::init(void* implspecific)
 {
@@ -381,18 +384,18 @@ void RCInput::init(void* implspecific)
     {
         // PPM single line mode
         //
-        // Set servo input interrupt pin mask to servo input channel 1
+        // Set input interrupt pin mask to input channel 1
         //
         Servo.setInterruptsMask(0b00000001);
 
-        register_signal(RCInput::ppm_capture_cb);
+        register_signal(RCInput::process_rc_pulse);
     }
     else
     if ( pin4_status == 3 ) 
     {
         // PPM redudancy mode
         //
-        // Set servo input interrupt pin mask to servo input channel 1 and 2
+        // Set input interrupt pin mask to input channels 1 and 2
         //
         Servo.setInterruptsMask(0b00000011);
 
@@ -402,7 +405,7 @@ void RCInput::init(void* implspecific)
     {
         // PWM mode - max 8 channels
         //
-        // Set servo input interrupt pin mask to all 8 servo input channels
+        // Set input interrupt pin mask to all 8 input channels
         //
         Servo.setInterruptsMask(0b11111111);
 
@@ -432,7 +435,7 @@ uint16_t RCInput::read(uint8_t ch)
 
     non_blocking_read(capt, _pulse_capt[ch]);
 
-    return pw_value(pw_crop(pw_scale(capt)));
+    return pw_value(pw_crop(Timer.ticksToUs(capt)));
 }
 
 uint8_t RCInput::read(uint16_t* values, uint8_t len)
@@ -461,7 +464,7 @@ uint8_t RCInput::read(uint16_t* values, uint8_t len)
      */
     for (uint8_t i = 0; i < len; i++)
     {
-        values[i] = (_overrides[i] >= ChannelValueRange::MIN) ? _overrides[i] : pw_value(pw_crop(pw_scale(values[i])));
+        values[i] = (_overrides[i] >= ChannelValueRange::MIN) ? _overrides[i] : pw_value(pw_crop(Timer.ticksToUs(values[i])));
     }
 
     return num_channels();
@@ -547,122 +550,192 @@ bool RCInput::rc_bind(int dsm_mode)
     return false;
 }
 
-void RCInput::ppm_capture_cb(void)
+void RCInput::process_ppm_pulse(const uint16_t pulse_ticks)
 {
     static const uint8_t PPM_CAPTURE_NUM_CHANNELS_MIN = _RCInput::PPM::Primary::NumChannels::_min;
     static const uint8_t PPM_CAPTURE_NUM_CHANNELS_MAX = _RCInput::PPM::Primary::NumChannels::_max;
-    static const uint8_t PPM_CAPTURE_MIN_SYNC_PULSE_W = ( _RCInput::PPM::Primary::PulseWidth::_frame_period -
-                                                          ( _RCInput::PPM::Primary::NumChannels::_max * _RCInput::PPM::Primary::PulseWidth::_max ) -
-                                                          _RCInput::PPM::Primary::PulseWidth::_pre ) * 2;
+    static const uint8_t PPM_CAPTURE_PULSE_WIDTH_MIN  = _RCInput::PPM::Primary::PulseWidth::_min;
+    static const uint8_t PPM_CAPTURE_PULSE_WIDTH_MAX  = _RCInput::PPM::Primary::PulseWidth::_max;
+    static const uint8_t PPM_CAPTURE_MIN_SYNC_PULSE_W = Timer.usToTicks
+    (
+        _RCInput::PPM::Primary::PulseWidth::_frame_period
+        -
+        (
+            _RCInput::PPM::Primary::NumChannels::_max
+            *
+            _RCInput::PPM::Primary::PulseWidth::_max
+        )
+        -
+        _RCInput::PPM::Primary::PulseWidth::_pre
+    );
 
-    static uint16_t prev_value;
-    static uint8_t  num_channels;
+    static uint8_t  channel_counter = 0;
+    static uint16_t pulses_ticks[RC_INPUT_NUM_CHANNELS_MAX];
 
-    const uint16_t curr_value = Timer.get();
-
-    uint16_t pulse_width;
-
-    if (curr_value < prev_value)
+    if (pulse_ticks >= PPM_CAPTURE_MIN_SYNC_PULSE_W)
     {
-        /* Timer rolls over at TOP=TIMER_ROLLUP
-         */
-        pulse_width = curr_value + TIMER_ROLLUP - prev_value;
-    }
-    else
-    {
-        pulse_width = curr_value - prev_value;
-    }
-
-    if (pulse_width > PPM_CAPTURE_MIN_SYNC_PULSE_W)
-    {
-        /* Sync pulse detected.
-         * Pass through values if at least a minimum number of channels received
-         */
-        if ( num_channels >= PPM_CAPTURE_NUM_CHANNELS_MIN )
+        // a long pulse indicates the end of a frame. Reset the
+        // channel counter so next pulse is channel 0
+        //
+        if (channel_counter >= PPM_CAPTURE_NUM_CHANNELS_MIN)
         {
-            _num_channels = num_channels;
+            for (uint8_t i=0; i<channel_counter; i++)
+            {
+                _pulse_capt[i] = pulses_ticks[i];
+            }
+
+            _num_channels = channel_counter;
 
             _new_input    = true;
         }
-        num_channels = 0;
+
+        channel_counter = 0;
+
+        return;
     }
-    else
+
+    if (channel_counter == -1)
     {
-        if (num_channels < PPM_CAPTURE_NUM_CHANNELS_MAX)
-        {
-            _pulse_capt[num_channels] = pulse_width;
-
-            num_channels++;
-
-            if (num_channels == RC_INPUT_NUM_CHANNELS_MAX)
-            {
-                _num_channels = RC_INPUT_NUM_CHANNELS_MAX;
-
-                _new_input    = true;
-            }
-        }
+        // we are not synchronised
+        //
+        return;
     }
 
-    prev_value = curr_value;
+    // we limit inputs to between 700usec and 2300usec. This allows us
+    // to decode SBUS on the same pin, as SBUS will have a maximum
+    // pulse width of 100usec
+    //
+    if ((pulse_ticks > PPM_CAPTURE_PULSE_WIDTH_MIN) && (pulse_ticks < PPM_CAPTURE_PULSE_WIDTH_MAX))
+    {
+        // take a reading for the current channel
+        // buffer these
+        //
+        pulses_ticks[channel_counter] = pulse_ticks;
+
+        // move to next channel
+        //
+        channel_counter++;
+    }
+
+    // if we have reached the maximum supported channels then
+    // mark as unsynchronised, so we wait for a wide pulse
+    if (channel_counter >= LINUX_RC_INPUT_NUM_CHANNELS)
+    {
+        for (uint8_t i=0; i<channel_counter; i++)
+        {
+            _pulse_capt[i] = pulses_ticks[i];
+        }
+
+        _num_channels   = channel_counter;
+
+        _new_input      = true;
+
+        channel_counter = -1;
+    }
+}
+
+void RCInput::process_rc_pulse(void)
+{
+    static uint16_t pulse_ticks[2] = { 0 };
+
+    static uint16_t prev_ticks = 0;
+
+    const uint16_t curr_ticks = Timer.get();
+
+    // To store current input pins
+    //
+    const uint8_t input_pins = SERVO_INPUT;
+    
+    // Servo input pin storage 
+    //
+    static uint8_t input_pins_old = 0;
+    
+    // Calculate input pin change mask
+    //
+    const bool input_change = ( input_pins ^ input_pins_old ) & RC_INPUT_PIN;
+
+    const bool rising_edge = ( input_pins & RC_INPUT_PIN );
+
+    if (input_change)
+    {
+        pulse_ticks[!rising_edge] = Timer.difftime(curr_ticks, prev_ticks);
+
+        prev_ticks = curr_ticks;
+
+        process_ppm_pulse(pulse_ticks[0] + pulse_ticks[1]);
+    }
+
+    // Store current input pins for next check
+    input_pins_old = input_pins;
 }
 
 void RCInput::pwm_capture_cb()
 {
-    static const uint8_t PWM_PULSEWIDTH_MIN   = _RCInput::PWM::PulseWidth::_min;
-    static const uint8_t PWM_PULSEWIDTH_MAX   = _RCInput::PWM::PulseWidth::_max;
+    static const uint8_t PWM_PULSEWIDTH_MIN   = Timer.usToTicks(_RCInput::PWM::PulseWidth::_min);
+    static const uint8_t PWM_PULSEWIDTH_MAX   = Timer.usToTicks(_RCInput::PWM::PulseWidth::_max);
     static const uint8_t PWM_NUM_CHANNELS_MAX = _RCInput::PWM::_num_channels;
-    static const uint8_t PWM_JITTER_FILTER    = _RCInput::PWM::_jitter_filter;
-    static const uint8_t PWM_AVERAGE_FILTER   = _RCInput::PWM::_average_filters;
+    static const uint8_t PWM_JITTER_FILTER    = Timer.usToTicks(_RCInput::PWM::_jitter_filter);
+    static const bool    PWM_AVERAGE_FILTER   = _RCInput::PWM::_average_filter;
 
     // Servo pulse start timing
-    static uint16_t prev_time[ PPM_ARRAY_MAX ] = { 0 };
+    //
+    static uint16_t prev_time[PWM_NUM_CHANNELS_MAX] = { 0 };
 
-    // Read current servo pulse change time
+    // Read current pulse change time
+    //
     const uint16_t curr_time = Timer.get();
 
     // Servo input pin storage 
-    static uint8_t servo_pins_old = 0;
+    //
+    static uint8_t input_pins_old = 0;
 
-    // Used to store current servo input pins
-    uint8_t servo_pins = SERVO_INPUT;
+    // Used to store current input pins
+    //
+    const uint8_t input_pins = SERVO_INPUT;
 
-    // Calculate servo input pin change mask
-    uint8_t servo_change = servo_pins ^ servo_pins_old;
+    // Calculate input pin change mask
+    //
+    uint8_t input_change = input_pins ^ input_pins_old;
     
-    if ( servo_change )
+    if ( input_change )
     {
-        for (unit8_t cur_channel = 0, servo_pin = 1;
-             servo_change && ( cur_channel < PWM_NUM_CHANNELS_MAX );
-             cur_channel++, servo_pin <<= 1)
+        for
+        (
+            unit8_t cur_channel = 0,
+                    input_pin   = 1
+            ;
+            input_change && ( cur_channel < PWM_NUM_CHANNELS_MAX )
+            ;
+            cur_channel++,
+            input_pin <<= 1
+        )
         {
-            // Check for pin change on current servo channel
+            // Check for pin change on current input channel
             //
-            if ( servo_change & servo_pin )
+            if ( input_change & input_pin )
             {
                 // Remove processed pin change from bitmask
                 //
-                servo_change &= ~servo_pin;
+                input_change &= ~input_pin;
 
                 // High (raising edge)
                 //
-                if ( servo_pins & servo_pin )
+                if ( input_pins & input_pin )
                 {
-                    prev_time[ cur_channel ] = curr_time;
+                    prev_time[cur_channel] = curr_time;
                 }
                 else
                 {
-                    // Get servo pulse width
+                    // Get pulse width
                     //
-                    uint16_t servo_width = curr_time - prev_time[ cur_channel ];
+                    uint16_t pulse_ticks = Timer.difftime(curr_time, prev_time[cur_channel]);
                     
-                    // Check that servo pulse signal is valid before sending to ppm encoder
+                    // Check that pulse signal is valid
                     //
-                    if ( ( servo_width < PWM_PULSEWIDTH_MIN ) || ( servo_width > PWM_PULSEWIDTH_MAX ) )
+                    if ( ( pulse_ticks < PWM_PULSEWIDTH_MIN ) || ( pulse_ticks > PWM_PULSEWIDTH_MAX ) )
                     {
-                        // Used to indicate invalid servo input signals
+                        // Invalid input signals --> TODO need to notify ?
                         //
-                        servo_input_errors++;
-
                         continue;
                     }
                     
@@ -670,16 +743,16 @@ void RCInput::pwm_capture_cb()
                     {
                         // Average filter to smooth input jitter
                         //
-                        servo_width += _pulse_capt[cur_channel];
+                        pulse_ticks += _pulse_capt[cur_channel];
 
-                        servo_width >>= 1;
+                        pulse_ticks >>= 1;
                     }
 
                     if (PWM_JITTER_FILTER > 0)
                     {
                         // 0.5us cut filter to remove input jitter
                         //
-                        int16_t ppm_tmp = _pulse_capt[cur_channel] - servo_width;
+                        int16_t ppm_tmp = _pulse_capt[cur_channel] - pulse_ticks;
 
                         if ( ppm_tmp <= PWM_JITTER_FILTER && ppm_tmp >= -PWM_JITTER_FILTER )
                         {
@@ -689,14 +762,14 @@ void RCInput::pwm_capture_cb()
 
                     // Update _pulse_capt[..]
                     //
-                    _pulse_capt[cur_channel] = servo_width;
+                    _pulse_capt[cur_channel] = pulse_ticks;
                 }
             }
         }
 
-        // Store current servo input pins for next check
+        // Store current input pins for next check
         //
-        servo_pins_old = servo_pins;
+        input_pins_old = input_pins;
 
         _num_channels = PWM_NUM_CHANNELS_MAX;
 

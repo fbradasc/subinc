@@ -125,7 +125,8 @@ public:
                 // +--------------+---------------+--------+--------+
 
                 uint8_t _num_channels;
-                uint8_t _filters;
+                int16_t _jitter_filter;
+                bool    _average_filter;
 
                 struct
                 {
@@ -294,3 +295,4 @@ PARAMDEFT(uint8_t , UInt8 ) // defines PUInt8
 PARAMDEFT(uint16_t, UInt16) // defines PUInt16
 PARAMDEFT(uint32_t, UInt32) // defines PUInt32
 PARAMDEFT(size_t  , Size  ) // defines PSize
+PARAMDEFV(bool    , Bool  ) // defines PBool

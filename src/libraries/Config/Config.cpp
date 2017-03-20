@@ -71,7 +71,8 @@ void Config::load()
     // +--------------+---------------+--------+--------+
     //
     Config::_config.RCInput.PWM._num_channels    =     8;
-    Config::_config.RCInput.PWM._filters         =     0;
+    Config::_config.RCInput.PWM._jitter_filter   =     0;
+    Config::_config.RCInput.PWM._average_filter  = false;
     Config::_config.RCInput.PWM.PulseWidth._min  =   920;
     Config::_config.RCInput.PWM.PulseWidth._max  =  2120;
 #endif
@@ -123,8 +124,9 @@ void Config::dump()
     printf("  }\n");
     printf("\n");
     printf("  PWM {\n");
-    printf("    _num_channels     = %d\n"  , Config::_config.RCInput.PWM._num_channels  );
-    printf("    _filters          = 0x%x\n", Config::_config.RCInput.PWM._filters  );
+    printf("    _num_channels     = %d\n", Config::_config.RCInput.PWM._num_channels);
+    printf("    _jitter_filter    = %d\n", Config::_config.RCInput.PWM._jitter_filter);
+    printf("    _average_filter   = %s\n", ( Config::_config.RCInput.PWM._average_filter ) ? "true" : "false");
     printf("\n");
     printf("    PulseWidth {\n");
     printf("      _min            = %d\n", Config::_config.RCInput.PWM.PulseWidth._min);
