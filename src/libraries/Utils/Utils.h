@@ -7,3 +7,5 @@
 #ifndef linearmap
 #define linearmap(x, imin, imax, omin, omax) (((x) - (imin)) * ((omax) - (omin)) / ((imax) - (imin)) + (omin))
 #endif
+
+#define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))

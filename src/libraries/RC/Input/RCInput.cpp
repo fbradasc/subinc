@@ -16,6 +16,8 @@
 #include <climits> // for SHRT_MIN
 
 #include <RC/Input/RCInput.h>
+#include <RC/Input/SBus.h>
+#include <RC/Input/DSM.h>
 
 #include <Debug/Debug.h>
 
@@ -148,38 +150,20 @@ namespace _RCInput
 {
     namespace PPM
     {
-        namespace Primary
-        {
-            DECLARE_FIELD( PUInt8, RCInput.PPM.Primary, _switchover_channel, PPM_SWITCHOVER_CHANNEL );
+        DECLARE_FIELD( PUInt8, RCInput.PPM, _switchover_channel, PPM_SWITCHOVER_CHANNEL );
 
-            namespace PulseWidth
-            {
-                DECLARE_FIELD( PUInt16, RCInput.PPM.Primary.PulseWidth, _frame_period, PPM_PRI_PW_FRAME_PERIOD    );
-                DECLARE_FIELD( PUInt16, RCInput.PPM.Primary.PulseWidth, _pre         , PPM_PRI_PW_PREPULSE_LENGHT );
-                DECLARE_FIELD( PUInt16, RCInput.PPM.Primary.PulseWidth, _min         , PPM_PRI_PW_MIN             );
-                DECLARE_FIELD( PUInt16, RCInput.PPM.Primary.PulseWidth, _switch      , PPM_PRI_PW_SWITCH          );
-                DECLARE_FIELD( PUInt16, RCInput.PPM.Primary.PulseWidth, _max         , PPM_PRI_PW_MAX             );
-            };
-            namespace NumChannels
-            {
-                DECLARE_FIELD( PUInt8, RCInput.PPM.Primary.NumChannels, _min, PPM_PRI_CH_MIN );
-                DECLARE_FIELD( PUInt8, RCInput.PPM.Primary.NumChannels, _max, PPM_PRI_CH_MAX );
-            };
-        };
-        namespace Secondary
+        namespace PulseWidth
         {
-            namespace PulseWidth
-            {
-                DECLARE_FIELD( PUInt16, RCInput.PPM.Secondary.PulseWidth, _frame_period, PPM_SEC_PW_FRAME_PERIOD    );
-                DECLARE_FIELD( PUInt16, RCInput.PPM.Secondary.PulseWidth, _pre         , PPM_SEC_PW_PREPULSE_LENGHT );
-                DECLARE_FIELD( PUInt16, RCInput.PPM.Secondary.PulseWidth, _min         , PPM_SEC_PW_MIN             );
-                DECLARE_FIELD( PUInt16, RCInput.PPM.Secondary.PulseWidth, _max         , PPM_SEC_PW_MAX             );
-            };
-            namespace NumChannels
-            {
-                DECLARE_FIELD( PUInt8, RCInput.PPM.Secondary.NumChannels, _min, PPM_SEC_CH_MIN );
-                DECLARE_FIELD( PUInt8, RCInput.PPM.Secondary.NumChannels, _max, PPM_SEC_CH_MAX );
-            };
+            DECLARE_FIELD( PUInt16, RCInput.PPM.PulseWidth, _frame_period, PPM_PRI_PW_FRAME_PERIOD    );
+            DECLARE_FIELD( PUInt16, RCInput.PPM.PulseWidth, _pre         , PPM_PRI_PW_PREPULSE_LENGHT );
+            DECLARE_FIELD( PUInt16, RCInput.PPM.PulseWidth, _min         , PPM_PRI_PW_MIN             );
+            DECLARE_FIELD( PUInt16, RCInput.PPM.PulseWidth, _switch      , PPM_PRI_PW_SWITCH          );
+            DECLARE_FIELD( PUInt16, RCInput.PPM.PulseWidth, _max         , PPM_PRI_PW_MAX             );
+        };
+        namespace NumChannels
+        {
+            DECLARE_FIELD( PUInt8, RCInput.PPM.NumChannels, _min, PPM_PRI_CH_MIN );
+            DECLARE_FIELD( PUInt8, RCInput.PPM.NumChannels, _max, PPM_PRI_CH_MAX );
         };
     };
     namespace PWM
@@ -409,7 +393,7 @@ void RCInput::init(void* implspecific)
         //
         Servo.setInterruptsMask(0b11111111);
 
-        register_signal(RCInput::pwm_capture_cb);
+        register_signal(RCInput::process_pwm_pulse);
     }
 }
 
@@ -550,23 +534,25 @@ bool RCInput::rc_bind(int dsm_mode)
     return false;
 }
 
+// process a PPM-sum pulse of the given width
+//
 void RCInput::process_ppm_pulse(const uint16_t pulse_ticks)
 {
-    static const uint8_t PPM_CAPTURE_NUM_CHANNELS_MIN = _RCInput::PPM::Primary::NumChannels::_min;
-    static const uint8_t PPM_CAPTURE_NUM_CHANNELS_MAX = _RCInput::PPM::Primary::NumChannels::_max;
-    static const uint8_t PPM_CAPTURE_PULSE_WIDTH_MIN  = _RCInput::PPM::Primary::PulseWidth::_min;
-    static const uint8_t PPM_CAPTURE_PULSE_WIDTH_MAX  = _RCInput::PPM::Primary::PulseWidth::_max;
+    static const uint8_t PPM_CAPTURE_NUM_CHANNELS_MIN = _RCInput::PPM::NumChannels::_min;
+    static const uint8_t PPM_CAPTURE_NUM_CHANNELS_MAX = _RCInput::PPM::NumChannels::_max;
+    static const uint8_t PPM_CAPTURE_PULSE_WIDTH_MIN  = _RCInput::PPM::PulseWidth::_min;
+    static const uint8_t PPM_CAPTURE_PULSE_WIDTH_MAX  = _RCInput::PPM::PulseWidth::_max;
     static const uint8_t PPM_CAPTURE_MIN_SYNC_PULSE_W = Timer.usToTicks
     (
-        _RCInput::PPM::Primary::PulseWidth::_frame_period
+        _RCInput::PPM::PulseWidth::_frame_period
         -
         (
-            _RCInput::PPM::Primary::NumChannels::_max
+            _RCInput::PPM::NumChannels::_max
             *
-            _RCInput::PPM::Primary::PulseWidth::_max
+            _RCInput::PPM::PulseWidth::_max
         )
         -
-        _RCInput::PPM::Primary::PulseWidth::_pre
+        _RCInput::PPM::PulseWidth::_pre
     );
 
     static uint8_t  channel_counter = 0;
@@ -619,7 +605,8 @@ void RCInput::process_ppm_pulse(const uint16_t pulse_ticks)
 
     // if we have reached the maximum supported channels then
     // mark as unsynchronised, so we wait for a wide pulse
-    if (channel_counter >= LINUX_RC_INPUT_NUM_CHANNELS)
+    //
+    if (channel_counter >= RC_INPUT_NUM_CHANNELS_MAX)
     {
         for (uint8_t i=0; i<channel_counter; i++)
         {
@@ -632,6 +619,238 @@ void RCInput::process_ppm_pulse(const uint16_t pulse_ticks)
 
         channel_counter = -1;
     }
+}
+
+// process a SBUS input pulse of the given width
+//
+void RCInput::process_sbus_pulse(uint16_t width_s0, uint16_t width_s1)
+{
+    static SBus sbus;
+
+    // convert to bit widths, allowing for up to 1usec error, assuming 100000 bps
+    //
+    uint16_t bits_s0 = (width_s0+1) / 10;
+    uint16_t bits_s1 = (width_s1+1) / 10;
+    uint16_t nlow;
+
+    uint8_t byte_ofs = sbus.bit_ofs / SBUS_STREAM_BITS;
+    uint8_t bit_ofs  = sbus.bit_ofs % SBUS_STREAM_BITS;
+
+    if ((bits_s0 != 0) && (bits_s1 != 0) && (bits_s0+bit_ofs <= 10))
+    {
+        // pull in the high bits
+        //
+        sbus.bytes[byte_ofs] |= ((1U<<bits_s0)-1) << bit_ofs;
+        sbus.bit_ofs += bits_s0;
+        bit_ofs      += bits_s0;
+
+        // pull in the low bits
+        //
+        nlow = bits_s1;
+
+        if (nlow + bit_ofs > SBUS_STREAM_BITS)
+        {
+            nlow = SBUS_STREAM_BITS - bit_ofs;
+        }
+
+        bits_s1      -= nlow;
+        sbus.bit_ofs += nlow;
+
+        if ((sbus.bit_ofs == SBUS_BFRAME_SIZE*SBUS_STREAM_BITS) && (bits_s1 > SBUS_STREAM_BITS))
+        {
+            // we have a full frame
+            //
+            uint8_t bytes[SBUS_FRAME_SIZE];
+            uint8_t i;
+
+            for (i=0; i<SBUS_FRAME_SIZE; i++)
+            {
+                // get inverted data
+                //
+                uint16_t v = ~sbus.bytes[i];
+
+                // check start bit
+                //
+                if ((v & 1) != 0)
+                {
+                    sbus.reset();
+
+                    return;
+                }
+
+                // check stop bits
+                //
+                if ((v & 0xC00) != 0xC00)
+                {
+                    sbus.reset();
+
+                    return;
+                }
+
+                // check parity
+                //
+                uint8_t parity = 0, j;
+
+                for (j=1; j<=8; j++)
+                {
+                    parity ^= (v & (1U<<j)) ? 1 : 0;
+                }
+
+                if (parity != (v&0x200)>>9)
+                {
+                    sbus.reset();
+
+                    return;
+                }
+
+                bytes[i] = ((v>>1) & 0xFF);
+            }
+
+            uint16_t values[RC_INPUT_NUM_CHANNELS_MAX];
+
+            int8_t num_values = SBus::decode(bytes, values, RC_INPUT_NUM_CHANNELS_MAX);
+
+            if ((num_values >= RC_INPUT_NUM_CHANNELS_MIN) &&
+                (num_values <= RC_INPUT_NUM_CHANNELS_MAX))
+            {
+                for (i=0; i<num_values; i++)
+                {
+                    _pulse_capt[i] = values[i];
+                }
+
+                _num_channels = num_values;
+                _new_input    = true;
+            }
+
+            sbus.reset();
+
+            return;
+        }
+        else if (bits_s1 > SBUS_STREAM_BITS)
+        {
+            // break
+            //
+            sbus.reset();
+
+            return;
+        }
+
+        return;
+    }
+
+    sbus.reset();
+}
+
+void RCInput::process_dsm_pulse(uint16_t width_s0, uint16_t width_s1)
+{
+    static DSM dsm;
+
+    // convert to bit widths, allowing for up to 1usec error, assuming 115200 bps
+    //
+    uint16_t bits_s0 = ((width_s0+4)*(uint32_t)115200) / 1000000;
+    uint16_t bits_s1 = ((width_s1+4)*(uint32_t)115200) / 1000000;
+    uint8_t  bit_ofs ;
+    uint8_t  byte_ofs;
+    uint16_t nbits   ;
+
+    if ((bits_s0 == 0) || (bits_s1 == 0))
+    {
+        // invalid data
+        //
+        dsm.reset();
+
+        return;
+    }
+
+    byte_ofs = dsm.bit_ofs / DSM_FRAME_BITS;
+    bit_ofs  = dsm.bit_ofs % DSM_FRAME_BITS;
+    
+    if (byte_ofs > 15)
+    {
+        // invalid data
+        //
+        dsm.reset();
+
+        return;
+    }
+
+    // pull in the high bits
+    //
+    nbits = bits_s0;
+
+    if (nbits+bit_ofs > DSM_FRAME_BITS)
+    {
+        nbits = DSM_FRAME_BITS - bit_ofs;
+    }
+
+    dsm.bytes[byte_ofs] |= ((1U<<nbits)-1) << bit_ofs;
+    dsm.bit_ofs         += nbits;
+    bit_ofs             += nbits;
+
+    if ((bits_s0 - nbits) > DSM_FRAME_BITS)
+    {
+        if (dsm.bit_ofs == DSM_FRAME_SIZE*DSM_FRAME_BITS)
+        {
+            // we have a full frame
+            uint8_t bytes[DSM_FRAME_SIZE];
+            uint8_t i;
+
+            for (i=0; i<16; i++)
+            {
+                // get raw data
+                //
+                uint16_t v = dsm.bytes[i];
+                
+                // check start bit || stop bit
+                //
+                if (((v & 1) != 0) || ((v & 0x200) != 0x200))
+                {
+                    dsm.reset();
+
+                    return;
+                }
+
+                bytes[i] = ((v>>1) & 0xFF);
+            }
+
+            uint16_t values[8];
+
+            uint16_t num_values = DSM::decode(hal.scheduler->micros64(), bytes, values, 8);
+
+            if ((num_values >= RC_INPUT_NUM_CHANNELS_MIN) &&
+                (num_values <= RC_INPUT_NUM_CHANNELS_MAX))
+            {
+                for (i=0; i<num_values; i++)
+                {
+                    _pulse_capt[i] = values[i];
+                }
+
+                _num_channels = num_values;                
+
+                new_rc_input = true;
+            }
+        }
+
+        dsm.reset();
+    }
+
+    byte_ofs = dsm.bit_ofs / DSM_FRAME_BITS;
+    bit_ofs  = dsm.bit_ofs % DSM_FRAME_BITS;
+
+    if (bits_s1+bit_ofs > DSM_FRAME_BITS)
+    {
+        // invalid data
+        //
+        dsm.reset();
+
+        return;
+    }
+
+    // pull in the low bits
+    //
+    dsm.bit_ofs += bits_s1;
+
+    return;
 }
 
 void RCInput::process_rc_pulse(void)
@@ -653,8 +872,7 @@ void RCInput::process_rc_pulse(void)
     // Calculate input pin change mask
     //
     const bool input_change = ( input_pins ^ input_pins_old ) & RC_INPUT_PIN;
-
-    const bool rising_edge = ( input_pins & RC_INPUT_PIN );
+    const bool rising_edge  = ( input_pins & RC_INPUT_PIN );
 
     if (input_change)
     {
@@ -662,14 +880,27 @@ void RCInput::process_rc_pulse(void)
 
         prev_ticks = curr_ticks;
 
-        process_ppm_pulse(pulse_ticks[0] + pulse_ticks[1]);
+        if (rising_edge)
+        {
+            // treat as PPM-Sum
+            //
+            process_ppm_pulse(pulse_ticks[0] + pulse_ticks[1]);
+
+            // treat as SBUS
+            //
+            process_sbus_pulse(pulse_ticks[0], pulse_ticks[1]);
+
+            // treat as DSM
+            //
+            process_dsm_pulse (pulse_ticks[0], pulse_ticks[1]);
+        }
     }
 
     // Store current input pins for next check
     input_pins_old = input_pins;
 }
 
-void RCInput::pwm_capture_cb()
+void RCInput::process_pwm_pulse()
 {
     static const uint8_t PWM_PULSEWIDTH_MIN   = Timer.usToTicks(_RCInput::PWM::PulseWidth::_min);
     static const uint8_t PWM_PULSEWIDTH_MAX   = Timer.usToTicks(_RCInput::PWM::PulseWidth::_max);

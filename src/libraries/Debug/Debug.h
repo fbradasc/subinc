@@ -5,17 +5,17 @@
 
 #define DBG_STRCAT(a,b) a ## b
 
-#define DBG_MSG_F(fmt, args...)     Debug::printf(Debug::MSG , fmt , ##args);
-#define DBG_INF_F(fmt, args...)     Debug::printf(Debug::INF , fmt , ##args);
-#define DBG_WRN_F(fmt, args...)     Debug::printf(Debug::WRN , fmt , ##args);
-#define DBG_DBG_F(fmt, args...)     Debug::printf(Debug::DBG , fmt , ##args);
-#define DBG_ERR_F(fmt, args...)     Debug::printf(Debug::ERR , fmt , ##args);
+#define DBG_MSG_F(fmt, args...)    Debug::printf(Debug::MSG , fmt , ##args);
+#define DBG_INF_F(fmt, args...)    Debug::printf(Debug::INF , fmt , ##args);
+#define DBG_WRN_F(fmt, args...)    Debug::printf(Debug::WRN , fmt , ##args);
+#define DBG_DBG_F(fmt, args...)    Debug::printf(Debug::DBG , fmt , ##args);
+#define DBG_ERR_F(fmt, args...)    Debug::printf(Debug::ERR , fmt , ##args);
                               
-#define DBG_MSG_T(txt)          Debug::print (Debug::MSG , txt);
-#define DBG_INF_T(txt)          Debug::print (Debug::INF , txt);
-#define DBG_WRN_T(txt)          Debug::print (Debug::WRN , txt);
-#define DBG_DBG_T(txt)          Debug::print (Debug::DBG , txt);
-#define DBG_ERR_T(txt)          Debug::print (Debug::ERR , txt);
+#define DBG_MSG_T(txt)             Debug::print (Debug::MSG , txt);
+#define DBG_INF_T(txt)             Debug::print (Debug::INF , txt);
+#define DBG_WRN_T(txt)             Debug::print (Debug::WRN , txt);
+#define DBG_DBG_T(txt)             Debug::print (Debug::DBG , txt);
+#define DBG_ERR_T(txt)             Debug::print (Debug::ERR , txt);
                               
 #define DBG_PRINTF(fmt, args...)   Debug::printf(Debug::ALL , fmt , ##args);
 #define DBG_PRINT(txt)             Debug::print (Debug::ALL , txt);

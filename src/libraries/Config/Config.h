@@ -58,59 +58,32 @@ public:
         {
             struct
             {
-                // +--------------+----------------------------------------------+-------------+
-                // |              |                  PulseWidth (us)             | NumChannels |
-                // |     Mode     +---------------+------+------+---------+------+------+------+
-                // |              | _frame_period | _pre | _min | _switch | _max | _min | _max |
-                // +--------------+---------------+------+------+---------+------+------+------+
-                // | Standard PPM | 20000 (50 Hz) |  400 |  920 |   1800  | 2120 |   4  |   8  |
-                // | 9 channels   | 22500 (44 Hz) |  400 |  920 |   1800  | 2120 |   4  |   9  |
-                // | PPMv2        | 20000 (50 Hz) |  200 |  460 |    900  | 1060 |   4  |  16  |
-                // | PPMv3        | 25000 (40 Hz) |  400 |  750 |   1260  | 1350 |   4  |  16  |  
-                // +--------------+---------------+------+------+---------+------+------+------+
+                // +--------------+------------------------------------+-------------+
+                // |              |            PulseWidth (us)         | NumChannels |
+                // |     Mode     +---------------+------+------+------+------+------+
+                // |              | _frame_period | _pre | _min | _max | _min | _max |
+                // +--------------+---------------+------+------+------+------+------+
+                // | Standard PPM | 20000 (50 Hz) |  400 |  920 | 2120 |   4  |   8  |
+                // | 9 channels   | 22500 (44 Hz) |  400 |  920 | 2120 |   4  |   9  |
+                // | PPMv2        | 20000 (50 Hz) |  200 |  460 | 1060 |   4  |  16  |
+                // | PPMv3        | 25000 (40 Hz) |  400 |  750 | 1350 |   4  |  16  |  
+                // +--------------+---------------+------+------+------+------+------+
 
                 struct
                 {
-                    uint8_t _switchover_channel;
-
-                    struct
-                    {
-                        uint16_t _frame_period;
-                        uint16_t _pre;
-                        uint16_t _min;
-                        uint16_t _switch;
-                        uint16_t _max;
-                    }
-                    PulseWidth;
-
-                    struct
-                    {
-                        uint8_t _min;
-                        uint8_t _max;
-                    }
-                    NumChannels;
+                    uint16_t _frame_period;
+                    uint16_t _pre;
+                    uint16_t _min;
+                    uint16_t _max;
                 }
-                Primary;
+                PulseWidth;
 
                 struct
                 {
-                    struct
-                    {
-                        uint16_t _frame_period;
-                        uint16_t _pre;
-                        uint16_t _min;
-                        uint16_t _max;
-                    }
-                    PulseWidth;
-
-                    struct
-                    {
-                        uint8_t _min;
-                        uint8_t _max;
-                    }
-                    NumChannels;
+                    uint8_t _min;
+                    uint8_t _max;
                 }
-                Secondary;
+                NumChannels;
             }
             PPM;
 
@@ -124,8 +97,8 @@ public:
                 // | Standard PPM |       8       |   920  |  2120  |
                 // +--------------+---------------+--------+--------+
 
-                uint8_t _num_channels;
-                int16_t _jitter_filter;
+                uint8_t _num_channels  ;
+                int16_t _jitter_filter ;
                 bool    _average_filter;
 
                 struct

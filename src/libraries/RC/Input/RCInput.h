@@ -17,6 +17,7 @@
 
 #include <Config/Config.h>
 
+#define RC_INPUT_NUM_CHANNELS_MIN 5
 #define RC_INPUT_NUM_CHANNELS_MAX 16
 
 class RCInput
