@@ -19,6 +19,7 @@
 ///			general interest to the system.
 #pragma once
 
+#include <Utils/Utils.h>
 #include <Debug/Debug.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -71,10 +72,10 @@ public:
 
                 struct
                 {
-                    uint16_t _frame_period;
-                    uint16_t _pre;
-                    uint16_t _min;
-                    uint16_t _max;
+                    pulse_width_t _frame_period;
+                    pulse_width_t _pre;
+                    pulse_width_t _min;
+                    pulse_width_t _max;
                 }
                 PulseWidth;
 
@@ -97,14 +98,14 @@ public:
                 // | Standard PPM |       8       |   920  |  2120  |
                 // +--------------+---------------+--------+--------+
 
-                uint8_t _num_channels  ;
-                int16_t _jitter_filter ;
-                bool    _average_filter;
+                uint8_t       _num_channels  ;
+                pulse_width_t _jitter_filter ;
+                bool          _average_filter;
 
                 struct
                 {
-                    uint16_t _min;
-                    uint16_t _max;
+                    pulse_width_t _min;
+                    pulse_width_t _max;
                 }
                 PulseWidth;
             }
@@ -260,12 +261,13 @@ protected:
 // _suffix is the suffix on the P* type name
 #define PARAMDEFV(_t, _suffix)   typedef ParamV<_t> P ## _suffix;
 
-PARAMDEFT(float   , Float ) // defines PFloat
-PARAMDEFT(int8_t  , Int8  ) // defines PInt8
-PARAMDEFT(int16_t , Int16 ) // defines PInt16
-PARAMDEFT(int32_t , Int32 ) // defines PInt32
-PARAMDEFT(uint8_t , UInt8 ) // defines PUInt8
-PARAMDEFT(uint16_t, UInt16) // defines PUInt16
-PARAMDEFT(uint32_t, UInt32) // defines PUInt32
-PARAMDEFT(size_t  , Size  ) // defines PSize
-PARAMDEFV(bool    , Bool  ) // defines PBool
+PARAMDEFT(float        , Float     ) // defines PFloat
+PARAMDEFT(int8_t       , Int8      ) // defines PInt8
+PARAMDEFT(int16_t      , Int16     ) // defines PInt16
+PARAMDEFT(int32_t      , Int32     ) // defines PInt32
+PARAMDEFT(uint8_t      , UInt8     ) // defines PUInt8
+PARAMDEFT(uint16_t     , UInt16    ) // defines PUInt16
+PARAMDEFT(uint32_t     , UInt32    ) // defines PUInt32
+PARAMDEFT(size_t       , Size      ) // defines PSize
+PARAMDEFV(bool         , Bool      ) // defines PBool
+PARAMDEFT(pulse_width_t, PulseWidth) // defines PPulseWidth

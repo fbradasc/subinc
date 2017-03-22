@@ -21,123 +21,6 @@
 
 #include <Debug/Debug.h>
 
-#define PPM_STANDARD  1  // Standard PPM : 1520 us +/- 600 us -  8 channels - 20   ms frame period
-#define PPM_EXTENDED  2  // 9 channels   : 1520 us +/- 600 us -  9 channels - 22.5 ms frame period
-#define PPM_V2        3  // PPMv2        :  760 us +/- 300 us - 16 channels - 20   ms frame period
-#define PPM_V3        4  // PPMv3        : 1050 us +/- 300 us - 16 channels - 25   ms frame period
-
-// PPM input frame mode receiver 1
-// -------------------------------------------------------------
-//#define PPM_PRI PPM_STANDARD
-//#define PPM_PRI PPM_EXTENDED
-//#define PPM_PRI PPM_V2
-//#define PPM_PRI PPM_V3
-
-// PPM input frame mode receiver 2
-// -------------------------------------------------------------
-//#define PPM_SEC PPM_STANDARD
-//#define PPM_SEC PPM_EXTENDED
-//#define PPM_SEC PPM_V2
-//#define PPM_SEC PPM_V3
-
-// PPM1 input : frame formats definitions
-// -------------------------------------------------------------
-#if ( PPM_PRI == PPM_STANDARD )
-
-#  define PPM_PRI_CH_MIN                 4
-#  define PPM_PRI_CH_MAX                 8
-#  define PPM_PRI_PW_FRAME_PERIOD    20000   // frame period (microseconds)
-#  define PPM_PRI_PW_MIN               920
-#  define PPM_PRI_PW_MAX              2120
-#  define PPM_PRI_PW_SWITCH           1800
-#  define PPM_PRI_PW_PREPULSE_LENGHT   400
-
-#elif ( PPM_PRI == PPM_EXTENDED )
-
-#  define PPM_PRI_CH_MIN                 4
-#  define PPM_PRI_CH_MAX                 9
-#  define PPM_PRI_PW_FRAME_PERIOD    22500   // frame period (microseconds)
-#  define PPM_PRI_PW_MIN               920
-#  define PPM_PRI_PW_MAX              2120
-#  define PPM_PRI_PW_SWITCH           1800
-#  define PPM_PRI_PW_PREPULSE_LENGHT   400
-
-#elif ( PPM_PRI == PPM_V2 ) // PPMv2 is a 50 Hz 16 channels mode
-
-#  define PPM_PRI_CH_MIN                 4
-#  define PPM_PRI_CH_MAX                16
-#  define PPM_PRI_PW_FRAME_PERIOD    20000   // frame period (microseconds)
-#  define PPM_PRI_PW_MIN               460
-#  define PPM_PRI_PW_MAX              1060
-#  define PPM_PRI_PW_SWITCH            900
-#  define PPM_PRI_PW_PREPULSE_LENGHT   200
-
-#elif ( PPM_PRI == PPM_V3 ) //  PPMv3 is a 40 Hz slower refresh rate 16 channels mode
-
-#  define PPM_PRI_CH_MIN                 4
-#  define PPM_PRI_CH_MAX                16
-#  define PPM_PRI_PW_FRAME_PERIOD    25000   // frame period (microseconds)
-#  define PPM_PRI_PW_MIN               750
-#  define PPM_PRI_PW_MAX              1350
-#  define PPM_PRI_PW_SWITCH           1260
-#  define PPM_PRI_PW_PREPULSE_LENGHT   400
-
-#else
-
-#  error "PPM_PRI not defined"
-
-#endif
-
-// PPM2 input : frame formats definitions
-// -------------------------------------------------------------
-#if ( PPM_SEC == PPM_STANDARD )
-
-#  define PPM_SEC_CH_MIN                 4
-#  define PPM_SEC_CH_MAX                 8
-#  define PPM_SEC_PW_FRAME_PERIOD    20000   // frame period (microseconds)
-#  define PPM_SEC_PW_MIN               920
-#  define PPM_SEC_PW_MAX              2120
-#  define PPM_SEC_PW_SWITCH           1800
-#  define PPM_SEC_PW_PREPULSE_LENGHT   400
-
-#elif (PPM_SEC == PPM_EXTENDED )
-
-#  define PPM_SEC_CH_MIN                 4
-#  define PPM_SEC_CH_MAX                 9
-#  define PPM_SEC_PW_FRAME_PERIOD    22500   // frame period (microseconds)
-#  define PPM_SEC_PW_MIN               920
-#  define PPM_SEC_PW_MAX              2120
-#  define PPM_SEC_PW_SWITCH           1800
-#  define PPM_SEC_PW_PREPULSE_LENGHT   400
-
-#elif ( PPM_SEC == PPM_V2 ) // PPMv2 is a 50 Hz 16 channels mode
-
-#  define PPM_SEC_CH_MIN                 4
-#  define PPM_SEC_CH_MAX                16
-#  define PPM_SEC_PW_FRAME_PERIOD    20000   // frame period (microseconds)
-#  define PPM_SEC_PW_MIN               460
-#  define PPM_SEC_PW_MAX              1060
-#  define PPM_SEC_PW_SWITCH            900
-#  define PPM_SEC_PW_PREPULSE_LENGHT   200
-
-#elif ( PPM_SEC == PPM_V3 ) //  PPMv3 is a 40 Hz slower refresh rate 16 channels mode
-
-#  define PPM_SEC_CH_MIN                 4
-#  define PPM_SEC_CH_MAX                16
-#  define PPM_SEC_PW_FRAME_PERIOD    25000   // frame period (microseconds)
-#  define PPM_SEC_PW_MIN               750
-#  define PPM_SEC_PW_MAX              1350
-#  define PPM_SEC_PW_SWITCH           1260
-#  define PPM_SEC_PW_PREPULSE_LENGHT   400
-
-#else
-
-#  error "PPM_SEC not defined"
-
-#endif
-
-#define PPM_SWITCHOVER_CHANNEL 9
-
 // -------------------------------------------------------------
 // SERVO PWM MODE input settings
 // -------------------------------------------------------------
@@ -148,74 +31,23 @@
 
 namespace _RCInput
 {
-    namespace PPM
-    {
-        DECLARE_FIELD( PUInt8, RCInput.PPM, _switchover_channel, PPM_SWITCHOVER_CHANNEL );
-
-        namespace PulseWidth
-        {
-            DECLARE_FIELD( PUInt16, RCInput.PPM.PulseWidth, _frame_period, PPM_PRI_PW_FRAME_PERIOD    );
-            DECLARE_FIELD( PUInt16, RCInput.PPM.PulseWidth, _pre         , PPM_PRI_PW_PREPULSE_LENGHT );
-            DECLARE_FIELD( PUInt16, RCInput.PPM.PulseWidth, _min         , PPM_PRI_PW_MIN             );
-            DECLARE_FIELD( PUInt16, RCInput.PPM.PulseWidth, _switch      , PPM_PRI_PW_SWITCH          );
-            DECLARE_FIELD( PUInt16, RCInput.PPM.PulseWidth, _max         , PPM_PRI_PW_MAX             );
-        };
-        namespace NumChannels
-        {
-            DECLARE_FIELD( PUInt8, RCInput.PPM.NumChannels, _min, PPM_PRI_CH_MIN );
-            DECLARE_FIELD( PUInt8, RCInput.PPM.NumChannels, _max, PPM_PRI_CH_MAX );
-        };
-    };
     namespace PWM
     {
-        DECLARE_FIELD( PUInt8, RCInput.PWM, _num_channels  , PWM_CH_NUM );
-        DECLARE_FIELD( PInt16, RCInput.PWM, _jitter_filter , SHRT_MIN   );
-        DECLARE_FIELD( PBool , RCInput.PWM, _average_filter, false      );
+        DECLARE_FIELD( PUInt8     , RCInput.PWM, _num_channels  , PWM_CH_NUM );
+        DECLARE_FIELD( PPulseWidth, RCInput.PWM, _jitter_filter , SHRT_MIN   );
+        DECLARE_FIELD( PBool      , RCInput.PWM, _average_filter, false      );
 
         namespace PulseWidth
         {
-            DECLARE_FIELD( PUInt16, RCInput.PWM.PulseWidth, _min, PWM_PW_MIN );
-            DECLARE_FIELD( PUInt16, RCInput.PWM.PulseWidth, _max, PWM_PW_MAX );
+            DECLARE_FIELD( PPulseWidth, RCInput.PWM.PulseWidth, _min, PWM_PW_MIN );
+            DECLARE_FIELD( PPulseWidth, RCInput.PWM.PulseWidth, _max, PWM_PW_MAX );
         };
     };
 };
 
-volatile uint16_t RCInput::_pulse_capt[RC_INPUT_NUM_CHANNELS_MAX] = {0};
-volatile bool     RCInput::_new_input                             = false;
-volatile uint8_t  RCInput::_num_channels                          = 0;
-volatile uint16_t RCInput::_min_pulsewidth                        = 0;
-volatile uint16_t RCInput::_max_pulsewidth                        = 0;
-
-/* Constrain captured pulse to be between min and max pulsewidth.
- */
-inline uint16_t RCInput::pw_crop(uint16_t p)
-{
-    if (p > _max_pulsewidth)
-    {
-        return _max_pulsewidth;
-    }
-
-    if (p < _min_pulsewidth)
-    {
-        return _min_pulsewidth;
-    }
-                               
-    return p;
-}
-
-/* Convert the pulse width to an absolute value
- *
- * Input:
- *      p : [_min_pulsewidth,_max_pulsewidth]
- *
- * Return:
- *
- *      v : [0,0x7fff]
- */
-inline uint16_t RCInput::pw_value(uint16_t p)
-{
-    return ( 0x7fff * ( p - _min_pulsewidth ) / ( _max_pulsewidth - _min_pulsewidth ) ) & 0x7fff;
-}
+volatile pulse_width_t RCInput::_pulse_capt[RC_INPUT_NUM_CHANNELS_MAX] = {0};
+volatile bool          RCInput::_new_input                             = false;
+volatile uint8_t       RCInput::_num_channels                          = 0;
 
 RCInput::RCInput()
 {
@@ -224,64 +56,64 @@ RCInput::RCInput()
 
 // AVR parameters for PhoneDrone and APM2 boards using ATmega32u2
 #if defined (__AVR_ATmega16U2__) || defined (__AVR_ATmega32U2__) || defined (__AVR_ATmega328P__) || defined (__AVR_ATmega328__)
-#  define enter_cs()  uint8_t __AVR_Critical_Section_SREG__ = SREG; cli();
-#  define leave_cs()  SREG = __AVR_Critical_Section_SREG__;
-#  define delay_us(d) _delay_us((d))
-#  define Timer.usToTicks(t)         ((t) << 1) // scale pulse from 1us units to 0.5us units.
-#  define Timer.ticksToUs(t)         ((t) >> 1) // scale pulse from 0.5us units to 1us units.
+#  define enter_cs()         uint8_t __AVR_Critical_Section_SREG__ = SREG; cli();
+#  define leave_cs()         SREG = __AVR_Critical_Section_SREG__;
+#  define delay_us(d)        _delay_us((d))
+#  define Timer.usToTicks(t) ((t) << 1) // scale pulse from 1us units to 0.5us units.
+#  define Timer.ticksToUs(t) ((t) >> 1) // scale pulse from 0.5us units to 1us units.
 #else
 #  define enter_cs()
 #  define leave_cs()
 #  define delay_us(d) 
-#  define Timer.usToTicks(t)         (t)
-#  define Timer.ticksToUs(t)         (t)
+#  define Timer.usToTicks(t) (t)
+#  define Timer.ticksToUs(t) (t)
 #endif
 
 #define non_blocking_read(to, from) for(to=(from); to!=(from); to=(from));
 
 #if defined (__AVR_ATmega16U2__) || defined (__AVR_ATmega32U2__)
 
-#  define SERVO_DDR                  DDRB
-#  define SERVO_PORT                 PORTB
-#  define SERVO_INPUT                PINB
-#  define SERVO_INT_VECTOR           PCINT0_vect
-#  define SERVO_INT_MASK             PCMSK0
-#  define SERVO_INT_CLEAR_FLAG       PCIF0
-#  define SERVO_INT_ENABLE           PCIE0
-#  define SERVO_TIMER_CNT            TCNT1
-                                    
-#  define PPM_DDR                    DDRC
-#  define PPM_PORT                   PORTC
-#  define PPM_OUTPUT_PIN             PC6
-#  define PPM_INT_VECTOR             TIMER1_COMPA_vect
-#  define PPM_COMPARE                OCR1A
-#  define PPM_COMPARE_FLAG           COM1A0
-#  define PPM_COMPARE_ENABLE         OCIE1A
-#  define PPM_COMPARE_FORCE_MATCH    FOC1A
+#  define SERVO_DDR               DDRB
+#  define SERVO_PORT              PORTB
+#  define SERVO_INPUT             PINB
+#  define SERVO_INT_VECTOR        PCINT0_vect
+#  define SERVO_INT_MASK          PCMSK0
+#  define SERVO_INT_CLEAR_FLAG    PCIF0
+#  define SERVO_INT_ENABLE        PCIE0
+#  define SERVO_TIMER_CNT         TCNT1
+                                  
+#  define PPM_DDR                 DDRC
+#  define PPM_PORT                PORTC
+#  define PPM_OUTPUT_PIN          PC6
+#  define PPM_INT_VECTOR          TIMER1_COMPA_vect
+#  define PPM_COMPARE             OCR1A
+#  define PPM_COMPARE_FLAG        COM1A0
+#  define PPM_COMPARE_ENABLE      OCIE1A
+#  define PPM_COMPARE_FORCE_MATCH FOC1A
 
-#  define TIMER_REG                  ICR4
+#  define TIMER_REG               ICR4
 
 #elif defined (__AVR_ATmega328P__) || defined (__AVR_ATmega328__)
 
-#  define SERVO_DDR                  DDRD
-#  define SERVO_PORT                 PORTD
-#  define SERVO_INPUT                PIND
-#  define SERVO_INT_VECTOR           PCINT2_vect
-#  define SERVO_INT_MASK             PCMSK2
-#  define SERVO_INT_CLEAR_FLAG       PCIF2
-#  define SERVO_INT_ENABLE           PCIE2
-#  define SERVO_TIMER_CNT            TCNT1
-                                    
-#  define PPM_DDR                    DDRB
-#  define PPM_PORT                   PORTB
-#  define PPM_OUTPUT_PIN             PB2
-#  define PPM_INT_VECTOR             TIMER1_COMPB_vect
-#  define PPM_COMPARE                OCR1B
-#  define PPM_COMPARE_FLAG           COM1B0
-#  define PPM_COMPARE_ENABLE         OCIE1B
-#  define PPM_COMPARE_FORCE_MATCH    FOC1B
+#  define SERVO_DDR               DDRD
+#  define SERVO_PORT              PORTD
+#  define SERVO_INPUT             PIND
+#  define SERVO_INT_VECTOR        PCINT2_vect
+#  define SERVO_INT_MASK          PCMSK2
+#  define SERVO_INT_CLEAR_FLAG    PCIF2
+#  define SERVO_INT_ENABLE        PCIE2
+#  define SERVO_TIMER_CNT         TCNT1
+                                  
+#  define PPM_DDR                 DDRB
+#  define PPM_PORT                PORTB
+#  define PPM_OUTPUT_PIN          PB2
+#  define PPM_INT_VECTOR          TIMER1_COMPB_vect
+#  define PPM_COMPARE             OCR1B
+#  define PPM_COMPARE_FLAG        COM1B0
+#  define PPM_COMPARE_ENABLE      OCIE1B
+#  define PPM_COMPARE_FORCE_MATCH FOC1B
 
-#  define TIMER_REG                  ICR4
+#  define TIMER_REG               ICR4
 
 #else
 
@@ -309,11 +141,15 @@ void RCInput::init(void* implspecific)
     // detect if PPM, PPM redudancy or PWM
     //
     uint8_t pin2_status = 0;
+#if defined(HANDLE_PPM_REDUDANCY)
     uint8_t pin4_status = 0;
+#endif
 
     Servo.enableInput (1); // Set pin 2 to input
     Servo.enableOutput(2); // Set pin 3 to output
+#if defined(HANDLE_PPM_REDUDANCY)
     Servo.enableInput (3); // Set pin 4 to input
+#endif
 
     Servo.clear(2); // Set pin 3 output low
     { 
@@ -324,10 +160,12 @@ void RCInput::init(void* implspecific)
             pin2_status++;
         }
 
+#if defined(HANDLE_PPM_REDUDANCY)
         if ( Servo.get(3) == 0 )
         {
             pin4_status++;
         }
+#endif
     }
 
     Servo.set(2);
@@ -339,10 +177,12 @@ void RCInput::init(void* implspecific)
             pin2_status++;
         }
 
+#if defined(HANDLE_PPM_REDUDANCY)
         if ( Servo.get(3) != 0 )
         {
             pin4_status++;
         }
+#endif
     }
 
     Servo.clear(2);
@@ -354,10 +194,12 @@ void RCInput::init(void* implspecific)
             pin2_status++;
         }
 
+#if defined(HANDLE_PPM_REDUDANCY)
         if ( Servo.get(3) == 0 )
         {
             pin4_status++;
         }
+#endif
     }
 
     // RESET SERVO/PPM PINS AS INPUTS WITH PULLUPS
@@ -374,6 +216,7 @@ void RCInput::init(void* implspecific)
 
         register_signal(RCInput::process_rc_pulse);
     }
+#if defined(HANDLE_PPM_REDUDANCY)
     else
     if ( pin4_status == 3 ) 
     {
@@ -385,6 +228,7 @@ void RCInput::init(void* implspecific)
 
         register_signal(RCInput::ppm_redudancy_capture_cb);
     }
+#endif
     else
     {
         // PWM mode - max 8 channels
@@ -401,7 +245,7 @@ void RCInput::deinit()
 {
 }
 
-uint16_t RCInput::read(uint8_t ch)
+pulse_width_t RCInput::read(uint8_t ch)
 {
     /* constrain ch
      */
@@ -415,14 +259,14 @@ uint16_t RCInput::read(uint8_t ch)
         return _overrides[ch];
     }
 
-    uint16_t capt;
+    pulse_width_t capt;
 
     non_blocking_read(capt, _pulse_capt[ch]);
 
-    return pw_value(pw_crop(Timer.ticksToUs(capt)));
+    return capt;
 }
 
-uint8_t RCInput::read(uint16_t* values, uint8_t len)
+uint8_t RCInput::read(pulse_width_t* values, uint8_t len)
 {
     /* constrain len 
      */
@@ -448,23 +292,23 @@ uint8_t RCInput::read(uint16_t* values, uint8_t len)
      */
     for (uint8_t i = 0; i < len; i++)
     {
-        values[i] = (_overrides[i] >= ChannelValueRange::MIN) ? _overrides[i] : pw_value(pw_crop(Timer.ticksToUs(values[i])));
+        values[i] = (_overrides[i] >= PULSE_WIDTH_MIN) ? _overrides[i] : values[i];
     }
 
     return num_channels();
 }
 
-int16_t RCInput::get_override(uint8_t channel) 
+pulse_width_t RCInput::get_override(uint8_t channel) 
 {
     if (channel < RC_INPUT_NUM_CHANNELS_MAX)
     {
         return _overrides[channel];
     }
 
-    return ChannelValueRange::NOP;
+    return PULSE_WIDTH_ERR;
 }
 
-uint8_t RCInput::get_overrides(int16_t *overrides, uint8_t len) 
+uint8_t RCInput::get_overrides(pulse_width_t *overrides, uint8_t len) 
 {
     if (NULL == overrides)
     {
@@ -484,7 +328,7 @@ uint8_t RCInput::get_overrides(int16_t *overrides, uint8_t len)
     return len;
 }
 
-bool RCInput::set_overrides(int16_t *overrides, uint8_t len) 
+bool RCInput::set_overrides(pulse_width_t *overrides, uint8_t len) 
 {
     bool res = false;
 
@@ -501,13 +345,13 @@ bool RCInput::set_overrides(int16_t *overrides, uint8_t len)
     return res;
 }
 
-bool RCInput::set_override(uint8_t channel, int16_t override) 
+bool RCInput::set_override(uint8_t channel, pulse_width_t override) 
 {
     if ((channel < RC_INPUT_NUM_CHANNELS_MAX) && (_overrides[channel] != override))
     {
         _overrides[channel] = override;
 
-        if (override >= ChannelValueRange::MIN)
+        if (override >= PULSE_WIDTH_MIN)
         {
             if (channel < num_channels())
             {
@@ -525,7 +369,7 @@ void RCInput::clear_overrides()
 {
     for (uint8_t i = 0; i < num_channels(); i++)
     {
-        _overrides[i] = ChannelValueRange::NOP;
+        _overrides[i] = PULSE_WIDTH_ERR;
     }
 }
 
@@ -534,332 +378,14 @@ bool RCInput::rc_bind(int dsm_mode)
     return false;
 }
 
-// process a PPM-sum pulse of the given width
-//
-void RCInput::process_ppm_pulse(const uint16_t pulse_ticks)
-{
-    static const uint8_t PPM_CAPTURE_NUM_CHANNELS_MIN = _RCInput::PPM::NumChannels::_min;
-    static const uint8_t PPM_CAPTURE_NUM_CHANNELS_MAX = _RCInput::PPM::NumChannels::_max;
-    static const uint8_t PPM_CAPTURE_PULSE_WIDTH_MIN  = _RCInput::PPM::PulseWidth::_min;
-    static const uint8_t PPM_CAPTURE_PULSE_WIDTH_MAX  = _RCInput::PPM::PulseWidth::_max;
-    static const uint8_t PPM_CAPTURE_MIN_SYNC_PULSE_W = Timer.usToTicks
-    (
-        _RCInput::PPM::PulseWidth::_frame_period
-        -
-        (
-            _RCInput::PPM::NumChannels::_max
-            *
-            _RCInput::PPM::PulseWidth::_max
-        )
-        -
-        _RCInput::PPM::PulseWidth::_pre
-    );
-
-    static uint8_t  channel_counter = 0;
-    static uint16_t pulses_ticks[RC_INPUT_NUM_CHANNELS_MAX];
-
-    if (pulse_ticks >= PPM_CAPTURE_MIN_SYNC_PULSE_W)
-    {
-        // a long pulse indicates the end of a frame. Reset the
-        // channel counter so next pulse is channel 0
-        //
-        if (channel_counter >= PPM_CAPTURE_NUM_CHANNELS_MIN)
-        {
-            for (uint8_t i=0; i<channel_counter; i++)
-            {
-                _pulse_capt[i] = pulses_ticks[i];
-            }
-
-            _num_channels = channel_counter;
-
-            _new_input    = true;
-        }
-
-        channel_counter = 0;
-
-        return;
-    }
-
-    if (channel_counter == -1)
-    {
-        // we are not synchronised
-        //
-        return;
-    }
-
-    // we limit inputs to between 700usec and 2300usec. This allows us
-    // to decode SBUS on the same pin, as SBUS will have a maximum
-    // pulse width of 100usec
-    //
-    if ((pulse_ticks > PPM_CAPTURE_PULSE_WIDTH_MIN) && (pulse_ticks < PPM_CAPTURE_PULSE_WIDTH_MAX))
-    {
-        // take a reading for the current channel
-        // buffer these
-        //
-        pulses_ticks[channel_counter] = pulse_ticks;
-
-        // move to next channel
-        //
-        channel_counter++;
-    }
-
-    // if we have reached the maximum supported channels then
-    // mark as unsynchronised, so we wait for a wide pulse
-    //
-    if (channel_counter >= RC_INPUT_NUM_CHANNELS_MAX)
-    {
-        for (uint8_t i=0; i<channel_counter; i++)
-        {
-            _pulse_capt[i] = pulses_ticks[i];
-        }
-
-        _num_channels   = channel_counter;
-
-        _new_input      = true;
-
-        channel_counter = -1;
-    }
-}
-
-// process a SBUS input pulse of the given width
-//
-void RCInput::process_sbus_pulse(uint16_t width_s0, uint16_t width_s1)
-{
-    static SBus sbus;
-
-    // convert to bit widths, allowing for up to 1usec error, assuming 100000 bps
-    //
-    uint16_t bits_s0 = (width_s0+1) / 10;
-    uint16_t bits_s1 = (width_s1+1) / 10;
-    uint16_t nlow;
-
-    uint8_t byte_ofs = sbus.bit_ofs / SBUS_STREAM_BITS;
-    uint8_t bit_ofs  = sbus.bit_ofs % SBUS_STREAM_BITS;
-
-    if ((bits_s0 != 0) && (bits_s1 != 0) && (bits_s0+bit_ofs <= 10))
-    {
-        // pull in the high bits
-        //
-        sbus.bytes[byte_ofs] |= ((1U<<bits_s0)-1) << bit_ofs;
-        sbus.bit_ofs += bits_s0;
-        bit_ofs      += bits_s0;
-
-        // pull in the low bits
-        //
-        nlow = bits_s1;
-
-        if (nlow + bit_ofs > SBUS_STREAM_BITS)
-        {
-            nlow = SBUS_STREAM_BITS - bit_ofs;
-        }
-
-        bits_s1      -= nlow;
-        sbus.bit_ofs += nlow;
-
-        if ((sbus.bit_ofs == SBUS_BFRAME_SIZE*SBUS_STREAM_BITS) && (bits_s1 > SBUS_STREAM_BITS))
-        {
-            // we have a full frame
-            //
-            uint8_t bytes[SBUS_FRAME_SIZE];
-            uint8_t i;
-
-            for (i=0; i<SBUS_FRAME_SIZE; i++)
-            {
-                // get inverted data
-                //
-                uint16_t v = ~sbus.bytes[i];
-
-                // check start bit
-                //
-                if ((v & 1) != 0)
-                {
-                    sbus.reset();
-
-                    return;
-                }
-
-                // check stop bits
-                //
-                if ((v & 0xC00) != 0xC00)
-                {
-                    sbus.reset();
-
-                    return;
-                }
-
-                // check parity
-                //
-                uint8_t parity = 0, j;
-
-                for (j=1; j<=8; j++)
-                {
-                    parity ^= (v & (1U<<j)) ? 1 : 0;
-                }
-
-                if (parity != (v&0x200)>>9)
-                {
-                    sbus.reset();
-
-                    return;
-                }
-
-                bytes[i] = ((v>>1) & 0xFF);
-            }
-
-            uint16_t values[RC_INPUT_NUM_CHANNELS_MAX];
-
-            int8_t num_values = SBus::decode(bytes, values, RC_INPUT_NUM_CHANNELS_MAX);
-
-            if ((num_values >= RC_INPUT_NUM_CHANNELS_MIN) &&
-                (num_values <= RC_INPUT_NUM_CHANNELS_MAX))
-            {
-                for (i=0; i<num_values; i++)
-                {
-                    _pulse_capt[i] = values[i];
-                }
-
-                _num_channels = num_values;
-                _new_input    = true;
-            }
-
-            sbus.reset();
-
-            return;
-        }
-        else if (bits_s1 > SBUS_STREAM_BITS)
-        {
-            // break
-            //
-            sbus.reset();
-
-            return;
-        }
-
-        return;
-    }
-
-    sbus.reset();
-}
-
-void RCInput::process_dsm_pulse(uint16_t width_s0, uint16_t width_s1)
-{
-    static DSM dsm;
-
-    // convert to bit widths, allowing for up to 1usec error, assuming 115200 bps
-    //
-    uint16_t bits_s0 = ((width_s0+4)*(uint32_t)115200) / 1000000;
-    uint16_t bits_s1 = ((width_s1+4)*(uint32_t)115200) / 1000000;
-    uint8_t  bit_ofs ;
-    uint8_t  byte_ofs;
-    uint16_t nbits   ;
-
-    if ((bits_s0 == 0) || (bits_s1 == 0))
-    {
-        // invalid data
-        //
-        dsm.reset();
-
-        return;
-    }
-
-    byte_ofs = dsm.bit_ofs / DSM_FRAME_BITS;
-    bit_ofs  = dsm.bit_ofs % DSM_FRAME_BITS;
-    
-    if (byte_ofs > 15)
-    {
-        // invalid data
-        //
-        dsm.reset();
-
-        return;
-    }
-
-    // pull in the high bits
-    //
-    nbits = bits_s0;
-
-    if (nbits+bit_ofs > DSM_FRAME_BITS)
-    {
-        nbits = DSM_FRAME_BITS - bit_ofs;
-    }
-
-    dsm.bytes[byte_ofs] |= ((1U<<nbits)-1) << bit_ofs;
-    dsm.bit_ofs         += nbits;
-    bit_ofs             += nbits;
-
-    if ((bits_s0 - nbits) > DSM_FRAME_BITS)
-    {
-        if (dsm.bit_ofs == DSM_FRAME_SIZE*DSM_FRAME_BITS)
-        {
-            // we have a full frame
-            uint8_t bytes[DSM_FRAME_SIZE];
-            uint8_t i;
-
-            for (i=0; i<16; i++)
-            {
-                // get raw data
-                //
-                uint16_t v = dsm.bytes[i];
-                
-                // check start bit || stop bit
-                //
-                if (((v & 1) != 0) || ((v & 0x200) != 0x200))
-                {
-                    dsm.reset();
-
-                    return;
-                }
-
-                bytes[i] = ((v>>1) & 0xFF);
-            }
-
-            uint16_t values[8];
-
-            uint16_t num_values = DSM::decode(hal.scheduler->micros64(), bytes, values, 8);
-
-            if ((num_values >= RC_INPUT_NUM_CHANNELS_MIN) &&
-                (num_values <= RC_INPUT_NUM_CHANNELS_MAX))
-            {
-                for (i=0; i<num_values; i++)
-                {
-                    _pulse_capt[i] = values[i];
-                }
-
-                _num_channels = num_values;                
-
-                new_rc_input = true;
-            }
-        }
-
-        dsm.reset();
-    }
-
-    byte_ofs = dsm.bit_ofs / DSM_FRAME_BITS;
-    bit_ofs  = dsm.bit_ofs % DSM_FRAME_BITS;
-
-    if (bits_s1+bit_ofs > DSM_FRAME_BITS)
-    {
-        // invalid data
-        //
-        dsm.reset();
-
-        return;
-    }
-
-    // pull in the low bits
-    //
-    dsm.bit_ofs += bits_s1;
-
-    return;
-}
-
 void RCInput::process_rc_pulse(void)
 {
-    static uint16_t pulse_ticks[2] = { 0 };
-
-    static uint16_t prev_ticks = 0;
-
-    const uint16_t curr_ticks = Timer.get();
+    static pulse_width_t pulse_ticks[2] = { 0 };
+    static pulse_width_t pulse_us   [2] = { 0 };
+    static pulse_width_t prev_ticks     = 0;
+    static timestamp_t   timestamp      = 0;
+                                       
+    const pulse_width_t  curr_ticks = Timer.get();
 
     // To store current input pins
     //
@@ -876,7 +402,12 @@ void RCInput::process_rc_pulse(void)
 
     if (input_change)
     {
-        pulse_ticks[!rising_edge] = Timer.difftime(curr_ticks, prev_ticks);
+        bool index = !rising_edge;
+
+        pulse_ticks[index] = Timer.difftime(curr_ticks, prev_ticks);
+        pulse_us   [index] = Timer.ticksToUs(pulse_ticks[index]);
+
+        timestamp += pulse_us[index];
 
         prev_ticks = curr_ticks;
 
@@ -884,15 +415,27 @@ void RCInput::process_rc_pulse(void)
         {
             // treat as PPM-Sum
             //
-            process_ppm_pulse(pulse_ticks[0] + pulse_ticks[1]);
+            {
+                static PPM ppm(this);
+
+                ppm.process_pulse(pulse_ticks[0] + pulse_ticks[1]);
+            }
 
             // treat as SBUS
             //
-            process_sbus_pulse(pulse_ticks[0], pulse_ticks[1]);
+            {
+                static SBus sbus(this);
+
+                sbus.process_pulse(pulse_us[0], pulse_us[1]);
+            }
 
             // treat as DSM
             //
-            process_dsm_pulse (pulse_ticks[0], pulse_ticks[1]);
+            {
+                static DSM dsm(this);
+
+                dsm.process_pulse(timestamp, pulse_us[0], pulse_us[1]);
+            }
         }
     }
 
@@ -902,19 +445,19 @@ void RCInput::process_rc_pulse(void)
 
 void RCInput::process_pwm_pulse()
 {
-    static const uint8_t PWM_PULSEWIDTH_MIN   = Timer.usToTicks(_RCInput::PWM::PulseWidth::_min);
-    static const uint8_t PWM_PULSEWIDTH_MAX   = Timer.usToTicks(_RCInput::PWM::PulseWidth::_max);
-    static const uint8_t PWM_NUM_CHANNELS_MAX = _RCInput::PWM::_num_channels;
-    static const uint8_t PWM_JITTER_FILTER    = Timer.usToTicks(_RCInput::PWM::_jitter_filter);
-    static const bool    PWM_AVERAGE_FILTER   = _RCInput::PWM::_average_filter;
+    static const pulse_width_t PWM_PULSEWIDTH_MIN   = Timer.usToTicks(_RCInput::PWM::PulseWidth::_min);
+    static const pulse_width_t PWM_PULSEWIDTH_MAX   = Timer.usToTicks(_RCInput::PWM::PulseWidth::_max);
+    static const pulse_width_t PWM_JITTER_FILTER    = Timer.usToTicks(_RCInput::PWM::_jitter_filter);
+    static const uint8_t  PWM_NUM_CHANNELS_MAX = _RCInput::PWM::_num_channels;
+    static const bool     PWM_AVERAGE_FILTER   = _RCInput::PWM::_average_filter;
 
     // Servo pulse start timing
     //
-    static uint16_t prev_time[PWM_NUM_CHANNELS_MAX] = { 0 };
+    static pulse_width_t prev_time[PWM_NUM_CHANNELS_MAX] = { 0 };
 
     // Read current pulse change time
     //
-    const uint16_t curr_time = Timer.get();
+    const pulse_width_t curr_time = Timer.get();
 
     // Servo input pin storage 
     //
@@ -959,7 +502,7 @@ void RCInput::process_pwm_pulse()
                 {
                     // Get pulse width
                     //
-                    uint16_t pulse_ticks = Timer.difftime(curr_time, prev_time[cur_channel]);
+                    pulse_width_t pulse_ticks = Timer.difftime(curr_time, prev_time[cur_channel]);
                     
                     // Check that pulse signal is valid
                     //
@@ -983,7 +526,7 @@ void RCInput::process_pwm_pulse()
                     {
                         // 0.5us cut filter to remove input jitter
                         //
-                        int16_t ppm_tmp = _pulse_capt[cur_channel] - pulse_ticks;
+                        pulse_width_t ppm_tmp = _pulse_capt[cur_channel] - pulse_ticks;
 
                         if ( ppm_tmp <= PWM_JITTER_FILTER && ppm_tmp >= -PWM_JITTER_FILTER )
                         {
@@ -1002,8 +545,8 @@ void RCInput::process_pwm_pulse()
         //
         input_pins_old = input_pins;
 
-        _num_channels = PWM_NUM_CHANNELS_MAX;
+        _num_channels  = PWM_NUM_CHANNELS_MAX;
 
-        _new_input    = true;
+        _new_input     = true;
     }
 }
