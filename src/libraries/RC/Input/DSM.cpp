@@ -336,7 +336,7 @@ uint8_t DSM::decode(timestamp_t frame_time, const uint8_t frame[DSM_FRAME_SIZE],
     return true;
 }
 
-void DSM::process_pulse(timestamp_t frame_time, pulse_width_t width_s0, pulse_width_t width_s1)
+void DSM::process_pulse(const timestamp_t frame_time, const pulse_width_t width_s0, const pulse_width_t width_s1)
 {
     // convert to bit widths, allowing for up to 1usec error, assuming 115200 bps
     //

@@ -12,7 +12,7 @@ public:
         reset();
     }
 
-    void process_pulse(timestamp_t frame_time, pulse_width_t width_s0, pulse_width_t width_s1);
+    void process_pulse(const timestamp_t frame_time, const pulse_width_t width_s0, const pulse_width_t width_s1);
 
 private:
     RCInput     &_listener;

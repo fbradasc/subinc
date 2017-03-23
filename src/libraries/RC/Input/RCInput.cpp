@@ -395,30 +395,26 @@ void RCInput::process_rc_pulse(void)
     //
     static uint8_t input_pins_old = 0;
     
-    // Calculate input pin change mask
-    //
-    const bool input_change = ( input_pins ^ input_pins_old ) & RC_INPUT_PIN;
-    const bool rising_edge  = ( input_pins & RC_INPUT_PIN );
-
-    if (input_change)
+    if ( ( input_pins ^ input_pins_old ) & RC_INPUT_PIN )
     {
-        bool index = !rising_edge;
+        const bool cur_pin_level = ( input_pins & RC_INPUT_PIN ) ? true : false ;
+        const bool old_pin_level = !cur_pin_level;
 
-        pulse_ticks[index] = Timer.difftime(curr_ticks, prev_ticks);
-        pulse_us   [index] = Timer.ticksToUs(pulse_ticks[index]);
+        pulse_ticks[old_pin_level] = Timer.difftime(curr_ticks, prev_ticks);
+        pulse_us   [old_pin_level] = Timer.ticksToUs(pulse_ticks[old_pin_level]);
 
-        timestamp += pulse_us[index];
+        timestamp += pulse_us[old_pin_level];
 
         prev_ticks = curr_ticks;
 
-        if (rising_edge)
+        if ( cur_pin_level )
         {
             // treat as PPM-Sum
             //
             {
                 static PPM ppm(this);
 
-                ppm.process_pulse(pulse_ticks[0] + pulse_ticks[1]);
+                ppm.process_pulse(pulse_ticks[0], pulse_ticks[1]);
             }
 
             // treat as SBUS

@@ -173,7 +173,7 @@ int8_t SBus::decode(const uint8_t frame[SBUS_FRAME_SIZE], pulse_width_t *values,
 
 // process a SBUS input pulse of the given width
 //
-void SBus::process_pulse(pulse_width_t width_s0, pulse_width_t width_s1)
+void SBus::process_pulse(const pulse_width_t width_s0, const pulse_width_t width_s1)
 {
     // convert to bit widths, allowing for up to 1usec error, assuming 100000 bps
     //
