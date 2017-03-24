@@ -75,103 +75,91 @@ namespace _RCInput
 
 #if 1
 
-#define PPM_CAPTURE_PULSE_WIDTH_MIN    460
-#define PPM_CAPTURE_PULSE_WIDTH_MAX   2120
-#define PPM_CAPTURE_MIN_SYNC_PULSE_W  3040
+#define PPM_CAPTURE_PULSE_WIDTH_MIN   PPM_PROFILES[_profile].pwm_pulse_min;
+#define PPM_CAPTURE_PULSE_WIDTH_MAX   PPM_PROFILES[_profile].pwm_pulse_max;
+#define PPM_CAPTURE_MIN_SYNC_PULSE_W  PPM_PROFILES[_profile].syn_pulse_min;
 
-#define PREPULSE_THRESHOLD_L           100
-#define PREPULSE_THRESHOLD_H            50
-#define PREPULSE_DELTA_MIN             150
+#define SWITCH_THRESHOLD_L        50
+#define SWITCH_THRESHOLD_H        25
 
-#define PREPULSE_CAGE                   50 // used to auto detect the PPM profile
-#define FRAME_CAGE                     500 // used to auto detect the PPM profile
+#define PREPULSE_CAGE             50 // used to auto detect the PPM profile
+#define FRAME_CAGE               500 // used to auto detect the PPM profile
 
-enum PPMMode
-{
-    PPM_STANDARD,
-    PPM_EXTENDED,
-    PPM_V2      ,
-    PPM_V3      ,
-};
-
-struct PPMProfiles
-{
-    PPMMode       mode;
-    uint8_t       channels_min;
-    uint8_t       channels_max;
-    pulse_width_t frame_period;
-    pulse_width_t pwm_pulse_min;
-    pulse_width_t pwm_pulse_max;
-    pulse_width_t pre_pulse_max;
-    pulse_width_t syn_pulse_min;
-    pulse_width_t syn_pulse_max;
-};
-
-const struct PPMProfiles ppm_profiles[] =
-{
-    { PPM_STANDARD, 4,  8, 20000, 920, 2120, 400, 3040, 16320 },
-    { PPM_EXTENDED, 4,  9, 22500, 920, 2120, 400, 3420, 18820 },
-    { PPM_V2      , 4, 16, 20000, 460, 1060, 200, 3040, 18160 },
-    { PPM_V3      , 4, 16, 25000, 750, 1350, 400, 3400, 22000 }
-};
 
 #define MATCH_IN_RANGE(a,b,r)    (((a) >= ((b) - (r))) && ((a) <= ((b) + (r))))
 
-void PPM::flush_switches()
+inline bool PPM::guess_ppm_profile()
 {
-}
-
-bool guess_pulse_width_ranges(pulse_width_t & min, pulse_width_t & max)
-{
-    if ((_min_pulse_width != PULSE_WIDTH_ERR) && (_max_pulse_width != PULSE_WIDTH_ERR))
+    if (!_profile)
     {
-        min = _min_pulse_width;
-        max = _max_pulse_width;
-
-        return true;
-    }
-
-    for (uint8_t i; i<ARRAY_SIZE(ppm_profiles); i++)
-    {
-        if (MATCH_IN_RANGE((_pulses_stat[0].sum + _pulses_stat[1].sum),ppm_profiles[i].frame_period,FRAME_CAGE))
+        for (uint8_t i; i<ARRAY_SIZE(PPM_PROFILES); i++)
         {
-            if (_pulses_stat[0].average < _pulses_stat[1].average)
+            if (MATCH_IN_RANGE((_pulses_stat[0].sum + _pulses_stat[1].sum), PPM_PROFILES[i].frame_length, FRAME_CAGE))
             {
-                if (MATCH_IN_RANGE((_pulses_stat[0].average),ppm_profiles[i].pre_pulse_max,PREPULSE_CAGE))
+                _swtch_pulse_ndx = (_pulses_stat[0].average < _pulses_stat[1].average) ? 0 : 1;
+
+                if (MATCH_IN_RANGE((_pulses_stat[_swtch_pulse_ndx].average), PPM_PROFILES[i].pre_pulse_max, PREPULSE_CAGE))
                 {
-                    _min_pulse_width = ppm_profiles[i].pwm_pulse_min;
-                    _max_pulse_width = ppm_profiles[i].pwm_pulse_max;
+                    _profile = i;
 
-                    min = _min_pulse_width;
-                    max = _max_pulse_width;
-
-                    return true;
-                }
-            }
-            else
-            {
-                if (MATCH_IN_RANGE((_pulses_stat[0].average),ppm_profiles[i].pre_pulse_max,PREPULSE_CAGE))
-                {
-                    _min_pulse_width = ppm_profiles[i].pwm_pulse_min;
-                    _max_pulse_width = ppm_profiles[i].pwm_pulse_max;
-
-                    min = _min_pulse_width;
-                    max = _max_pulse_width;
-
-                    return true;
+                    break;
                 }
             }
         }
     }
-
-    return false;
 }
 
-void PPM::flush_pulses()
-{   
+inline pulse_width_t PPM::scale(const pulse_width_t unscaled)
+{
+    if ( unscaled < PPM_CAPTURE_PULSE_WIDTH_MIN )
+    {
+        // shall issue an error
+        //
+        return PULSE_WIDTH_MIN;
+    }
+    else
+    if ( unscaled == PPM_CAPTURE_PULSE_WIDTH_MIN )
+    {
+        return PULSE_WIDTH_MIN;
+    }
+    else
+    if ( unscaled > PPM_CAPTURE_PULSE_WIDTH_MAX )
+    {
+        // shall issue an error
+        //
+        return PULSE_WIDTH_MAX;
+    }
+    else
+    if ( unscaled == PPM_CAPTURE_PULSE_WIDTH_MAX )
+    {
+        return PULSE_WIDTH_MAX;
+    }
+
+    return unscaled * PULSE_WIDTH_MAX / ( PPM_CAPTURE_PULSE_WIDTH_MAX - PPM_CAPTURE_PULSE_WIDTH_MIN );
+}
+
+inline void PPM::flush_pulses()
+{
+    if (!_profile)
+    {
+        // PPM mode not detected
+        //
+        return;
+    }
+
     for (uint8_t i=0; i<_channels; i++)
     {
-        _listener._pulse_capt[i] = _pulses_ticks[i][0] + _pulses_ticks[i][1];
+        _listener._pulse_capt[i] = scale(_pulses_ticks[i][0] + _pulses_ticks[i][1]);
+
+        if ( _pulses_ticks[i][_swtch_pulse_ndx] < (PPM_PROFILES[_profile].pre_pulse_max - SWITCH_THRESHOLD_L) )
+        {
+            _listener._switches ^= ( 1 << ( i << 1 ) );
+        }
+        else
+        if ( _pulses_ticks[i][_swtch_pulse_ndx] > (PPM_PROFILES[_profile].pre_pulse_max - SWITCH_THRESHOLD_H) )
+        {
+            _listener._switches ^= ( 1 << ( ( i << 1 ) + 1 ) );
+        }
     }
 
     _listener._num_channels = _channels;
@@ -191,6 +179,8 @@ void PPM::process_pulse(const pulse_width_t width_s0, const pulse_width_t width_
         _pulses_stat[1].update(width_s1);
     }
 
+    // TODO: calculate PPM_CAPTURE_MIN_SYNC_PULSE_W
+
     if (pulse_ticks >= PPM_CAPTURE_MIN_SYNC_PULSE_W)
     {
         // a long pulse indicates the end of a frame. Reset the
@@ -198,6 +188,8 @@ void PPM::process_pulse(const pulse_width_t width_s0, const pulse_width_t width_
         //
         if (_channels >= PPM_CAPTURE_NUM_CHANNELS_MIN)
         {
+            guess_ppm_profile();
+
             flush_pulses();
         }
 
@@ -243,7 +235,7 @@ void PPM::process_pulse(const pulse_width_t width_s0, const pulse_width_t width_
     {
         flush_pulses();
 
-        _channels    = -1;
+        _channels = -1;
 
         _pulses_stat[0].reset();
         _pulses_stat[1].reset();
