@@ -41,7 +41,7 @@ private:
         pulse_width_t frame_length;
         pulse_width_t pwm_pulse_min;
         pulse_width_t pwm_pulse_max;
-        pulse_width_t pre_pulse_max;
+        pulse_width_t ppm_pulse_med;
         pulse_width_t syn_pulse_min;
         pulse_width_t syn_pulse_max;
     };

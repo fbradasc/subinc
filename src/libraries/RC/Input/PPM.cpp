@@ -42,7 +42,7 @@ inline bool PPM::guess_ppm_profile()
             {
                 _swtch_pulse_ndx = (_pulses_stat[0].average() < _pulses_stat[1].average()) ? 0 : 1;
 
-                if (MATCH_IN_RANGE((_pulses_stat[_swtch_pulse_ndx].average()), _profiles[i].pre_pulse_max, PULSE_CAGE))
+                if (MATCH_IN_RANGE((_pulses_stat[_swtch_pulse_ndx].average()), _profiles[i].ppm_pulse_med, PULSE_CAGE))
                 {
                     _profile = i;
 
@@ -99,15 +99,15 @@ inline void PPM::flush_pulses()
     {
         _listener._pulse_capt[i] = scale(_pulses_ticks[i][0] + _pulses_ticks[i][1]);
 
-        //        +------------------------ _profiles[_profile].pre_pulse_max - PULSE_CAGE
+        //        +------------------------ _profiles[_profile].ppm_pulse_med - PULSE_CAGE
         //        |                    
-        //        |       +---------------- _profiles[_profile].pre_pulse_max - SWITCH_LEVEL
+        //        |       +---------------- _profiles[_profile].ppm_pulse_med - SWITCH_LEVEL
         //        |       |            
-        //        |       |  +------------- _profiles[_profile].pre_pulse_max
+        //        |       |  +------------- _profiles[_profile].ppm_pulse_med
         //        |       |  |         
-        //        |       |  |  +---------- _profiles[_profile].pre_pulse_max + SWITCH_LEVEL
+        //        |       |  |  +---------- _profiles[_profile].ppm_pulse_med + SWITCH_LEVEL
         //        |       |  |  |      
-        //        |       |  |  |       +-- _profiles[_profile].pre_pulse_max + PULSE_CAGE
+        //        |       |  |  |       +-- _profiles[_profile].ppm_pulse_med + PULSE_CAGE
         //        |       |  |  |       |
         //        v       v  v  v       v
         //        +-------+++++++-------+             +--...--+
@@ -136,12 +136,12 @@ inline void PPM::flush_pulses()
         //            |               
         //            +----------------- toggle switches' even bits
         //
-        if ( _pulses_ticks[i][_swtch_pulse_ndx] < (_profiles[_profile].pre_pulse_max - SWITCH_LEVEL) )
+        if ( _pulses_ticks[i][_swtch_pulse_ndx] < (_profiles[_profile].ppm_pulse_med - SWITCH_LEVEL) )
         {
             _listener._switches ^= ( 1 << ( i << 1 ) );
         }
         else
-        if ( _pulses_ticks[i][_swtch_pulse_ndx] > (_profiles[_profile].pre_pulse_max + SWITCH_LEVEL) )
+        if ( _pulses_ticks[i][_swtch_pulse_ndx] > (_profiles[_profile].ppm_pulse_med + SWITCH_LEVEL) )
         {
             _listener._switches ^= ( 1 << ( ( i << 1 ) + 1 ) );
         }
