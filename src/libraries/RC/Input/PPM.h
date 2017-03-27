@@ -2,8 +2,15 @@ pragma once;
 
 #include <RC/Input/RCInput.h>
 
-#define PPM_CAPTURE_NUM_CHANNELS_MIN  RC_INPUT_NUM_CHANNELS_MIN 
-#define PPM_CAPTURE_NUM_CHANNELS_MAX  min( 16, RC_INPUT_NUM_CHANNELS_MAX )
+#define GET_MIN(a,b)    ((a)<(b)) ? (a) : (b)
+#define GET_MAX(a,b)    ((a)>(b)) ? (a) : (b)
+
+#define PPM_CAPTURE_NUM_CHANNELS_MAX  GET_MIN( 16, RC_INPUT_NUM_CHANNELS_MAX )
+
+#define PPM_CAPTURE_NUM_CHANNELS_MIN  _profiles[_profile].channels_min;
+#define PPM_CAPTURE_PULSE_WIDTH_MIN   _profiles[_profile].pwm_pulse_min;
+#define PPM_CAPTURE_PULSE_WIDTH_MAX   _profiles[_profile].pwm_pulse_max;
+#define PPM_CAPTURE_MIN_SYNC_PULSE_W  _profiles[_profile].syn_pulse_min;
 
 class PPM
 {
@@ -23,6 +30,7 @@ private:
         PPM_EXTENDED,
         PPM_V2      ,
         PPM_V3      ,
+        PPM_PROFILES
     };
 
     struct PPMProfiles
@@ -38,18 +46,7 @@ private:
         pulse_width_t syn_pulse_max;
     };
 
-    const struct PPMProfiles PPM_PROFILES[] =
-    {
-        //+------------+-----------+--------+-------------+-----+---------------+//
-        //| PPM mode   | Channels# | Frame  |  PWM Pulse  | Pre | Synchro Pulse |//
-        //|            | min | max | length |  min |  max | max |  min  |  max  |//
-        //+------------+-----+-----+--------+------+------+-----+-------+-------+//
-        {  PPM_UNKNOWN ,   0 ,   0 ,      0 ,    0 ,    0 ,   0 ,     0 ,     0  },
-        {  PPM_STANDARD,   4 ,   8 ,  20000 ,  920 , 2120 , 400 ,  3040 , 16320  },
-        {  PPM_EXTENDED,   4 ,   9 ,  22500 ,  920 , 2120 , 400 ,  3420 , 18820  },
-        {  PPM_V2      ,   4 ,  16 ,  20000 ,  460 , 1060 , 200 ,  3040 , 18160  },
-        {  PPM_V3      ,   4 ,  16 ,  25000 ,  750 , 1350 , 400 ,  3400 , 22000  }
-    };
+    static struct PPMProfiles _profiles[PPM_PROFILES];
 
     RCInput &_listener;
 
@@ -71,17 +68,8 @@ private:
             if (val != PULSE_WIDTH_ERR)
             {
                 sum += val;
-
-                if (val < min)
-                {
-                    min = val;
-                }
-
-                if (val > max)
-                {
-                    max = val;
-                }
-
+                min = GET_MIN(val, min);
+                max = GET_MAX(val, max);
                 num++;
             }
         }
@@ -111,20 +99,38 @@ private:
     PulseStat      _pulses_stats[2];
     uint8_t        _swtch_pulse_ndx;
     
-
-    inline void reset()
+    inline void reset_ppm_profile()
     {
-        _profile         = 0;
-        _channels        = 0;
-        _swtch_pulse_ndx = 0;
+        _profile         =  0;
+        _channels        = -1;
+        _swtch_pulse_ndx =  0;
 
         memset(_pulses_ticks, 0, sizeof(_pulses_ticks)); 
         _pulses_stat[0].reset();
         _pulses_stat[1].reset();
     }
 
+    inline void reset()
+    {
+        reset_ppm_profile();
+
+        if (_profiles[0].syn_pulse_max == PULSE_WIDTH_ERR)
+        {
+            // Calculate starting PPM_CAPTURE_* values
+            //
+            for (uint8_t i=1; i<ARRAY_SIZE(_profiles); i++)
+            {
+                _profiles[0].pwm_pulse_min = GET_MIN(_profiles[i].pwm_pulse_min, _profiles[0].pwm_pulse_min);
+                _profiles[0].pwm_pulse_max = GET_MAX(_profiles[i].pwm_pulse_max, _profiles[0].pwm_pulse_max);
+                _profiles[0].syn_pulse_min = GET_MIN(_profiles[i].syn_pulse_min, _profiles[0].syn_pulse_min);
+                _profiles[0].syn_pulse_max = GET_MAX(_profiles[i].syn_pulse_max, _profiles[0].syn_pulse_max);
+            }
+        }
+    }
+
     bool          guess_ppm_profile()
     pulse_width_t scale            (const pulse_width_t unscaled)
     void          flush_pulses     ();
+
 };
 
