@@ -10,6 +10,9 @@
 
 #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
 
+#define GET_MIN(a,b)    ((a)<(b)) ? (a) : (b)
+#define GET_MAX(a,b)    ((a)>(b)) ? (a) : (b)
+
 typedef int16_t          pulse_width_t;
 typedef uint64_t         timestamp_t;
 

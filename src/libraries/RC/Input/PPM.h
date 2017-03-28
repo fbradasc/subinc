@@ -2,15 +2,7 @@ pragma once;
 
 #include <RC/Input/RCInput.h>
 
-#define GET_MIN(a,b)    ((a)<(b)) ? (a) : (b)
-#define GET_MAX(a,b)    ((a)>(b)) ? (a) : (b)
-
 #define PPM_CAPTURE_NUM_CHANNELS_MAX  GET_MIN( 16, RC_INPUT_NUM_CHANNELS_MAX )
-
-#define PPM_CAPTURE_NUM_CHANNELS_MIN  _profiles[_profile].channels_min;
-#define PPM_CAPTURE_PULSE_WIDTH_MIN   _profiles[_profile].pwm_pulse_min;
-#define PPM_CAPTURE_PULSE_WIDTH_MAX   _profiles[_profile].pwm_pulse_max;
-#define PPM_CAPTURE_MIN_SYNC_PULSE_W  _profiles[_profile].syn_pulse_min;
 
 class PPM
 {
@@ -41,7 +33,7 @@ private:
         pulse_width_t frame_length;
         pulse_width_t pwm_pulse_min;
         pulse_width_t pwm_pulse_max;
-        pulse_width_t ppm_pulse_med;
+        pulse_width_t ppm_pulse_avg;
         pulse_width_t syn_pulse_min;
         pulse_width_t syn_pulse_max;
     };

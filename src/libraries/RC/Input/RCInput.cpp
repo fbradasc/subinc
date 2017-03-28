@@ -16,36 +16,15 @@
 #include <climits> // for SHRT_MIN
 
 #include <RC/Input/RCInput.h>
+#include <RC/Input/PPM.h>
 #include <RC/Input/SBus.h>
 #include <RC/Input/DSM.h>
+#include <RC/Input/PWM.h>
 
 #include <Debug/Debug.h>
 
-// -------------------------------------------------------------
-// SERVO PWM MODE input settings
-// -------------------------------------------------------------
-
-#define PWM_CH_NUM             8
-#define PWM_PW_MIN           920
-#define PWM_PW_MAX          2120
-
-namespace _RCInput
-{
-    namespace PWM
-    {
-        DECLARE_FIELD( PUInt8     , RCInput.PWM, _num_channels  , PWM_CH_NUM );
-        DECLARE_FIELD( PPulseWidth, RCInput.PWM, _jitter_filter , SHRT_MIN   );
-        DECLARE_FIELD( PBool      , RCInput.PWM, _average_filter, false      );
-
-        namespace PulseWidth
-        {
-            DECLARE_FIELD( PPulseWidth, RCInput.PWM.PulseWidth, _min, PWM_PW_MIN );
-            DECLARE_FIELD( PPulseWidth, RCInput.PWM.PulseWidth, _max, PWM_PW_MAX );
-        };
-    };
-};
-
 volatile pulse_width_t RCInput::_pulse_capt[RC_INPUT_NUM_CHANNELS_MAX] = {0};
+volatile uint32_t      RCInput::_switches                              = 0x0000;
 volatile bool          RCInput::_new_input                             = false;
 volatile uint8_t       RCInput::_num_channels                          = 0;
 
@@ -138,18 +117,12 @@ void RCInput::init(void* implspecific)
     clear_overrides();
 
     //
-    // detect if PPM, PPM redudancy or PWM
+    // detect if single line mode or PWM mode
     //
     uint8_t pin2_status = 0;
-#if defined(HANDLE_PPM_REDUDANCY)
-    uint8_t pin4_status = 0;
-#endif
 
     Servo.enableInput (1); // Set pin 2 to input
     Servo.enableOutput(2); // Set pin 3 to output
-#if defined(HANDLE_PPM_REDUDANCY)
-    Servo.enableInput (3); // Set pin 4 to input
-#endif
 
     Servo.clear(2); // Set pin 3 output low
     { 
@@ -159,13 +132,6 @@ void RCInput::init(void* implspecific)
         {
             pin2_status++;
         }
-
-#if defined(HANDLE_PPM_REDUDANCY)
-        if ( Servo.get(3) == 0 )
-        {
-            pin4_status++;
-        }
-#endif
     }
 
     Servo.set(2);
@@ -176,13 +142,6 @@ void RCInput::init(void* implspecific)
         {
             pin2_status++;
         }
-
-#if defined(HANDLE_PPM_REDUDANCY)
-        if ( Servo.get(3) != 0 )
-        {
-            pin4_status++;
-        }
-#endif
     }
 
     Servo.clear(2);
@@ -193,13 +152,6 @@ void RCInput::init(void* implspecific)
         {
             pin2_status++;
         }
-
-#if defined(HANDLE_PPM_REDUDANCY)
-        if ( Servo.get(3) == 0 )
-        {
-            pin4_status++;
-        }
-#endif
     }
 
     // RESET SERVO/PPM PINS AS INPUTS WITH PULLUPS
@@ -208,7 +160,7 @@ void RCInput::init(void* implspecific)
     
     if ( pin2_status == 3 )
     {
-        // PPM single line mode
+        // Single line mode
         //
         // Set input interrupt pin mask to input channel 1
         //
@@ -216,19 +168,6 @@ void RCInput::init(void* implspecific)
 
         register_signal(RCInput::process_rc_pulse);
     }
-#if defined(HANDLE_PPM_REDUDANCY)
-    else
-    if ( pin4_status == 3 ) 
-    {
-        // PPM redudancy mode
-        //
-        // Set input interrupt pin mask to input channels 1 and 2
-        //
-        Servo.setInterruptsMask(0b00000011);
-
-        register_signal(RCInput::ppm_redudancy_capture_cb);
-    }
-#endif
     else
     {
         // PWM mode - max 8 channels
@@ -441,11 +380,15 @@ void RCInput::process_rc_pulse(void)
 
 void RCInput::process_pwm_pulse()
 {
+    static PWM pwm(this);
+
+    pmw.process_pulses(Timer.get(), SERVO_INPUT);
+
     static const pulse_width_t PWM_PULSEWIDTH_MIN   = Timer.usToTicks(_RCInput::PWM::PulseWidth::_min);
     static const pulse_width_t PWM_PULSEWIDTH_MAX   = Timer.usToTicks(_RCInput::PWM::PulseWidth::_max);
     static const pulse_width_t PWM_JITTER_FILTER    = Timer.usToTicks(_RCInput::PWM::_jitter_filter);
-    static const uint8_t  PWM_NUM_CHANNELS_MAX = _RCInput::PWM::_num_channels;
-    static const bool     PWM_AVERAGE_FILTER   = _RCInput::PWM::_average_filter;
+    static const uint8_t       PWM_NUM_CHANNELS_MAX = _RCInput::PWM::_num_channels;
+    static const bool          PWM_AVERAGE_FILTER   = _RCInput::PWM::_average_filter;
 
     // Servo pulse start timing
     //

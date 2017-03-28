@@ -1,3 +1,10 @@
+#include <RC/Input/PPM.h>
+
+#define PWM_CAPTURE_NUM_CHANNELS_MIN  _profiles[_profile].channels_min;
+#define PWM_CAPTURE_PULSE_WIDTH_MIN   _profiles[_profile].pwm_pulse_min;
+#define PWM_CAPTURE_PULSE_WIDTH_MAX   _profiles[_profile].pwm_pulse_max;
+#define PPM_CAPTURE_MIN_SYNC_PULSE_W  _profiles[_profile].syn_pulse_min;
+
 #define SWITCH_LEVEL   15               // used to auto detect digital data over pre pulse
 #define PULSE_CAGE     SWITCH_LEVEL*3   // used to auto detect the PPM profile
 #define FRAME_CAGE     500              // used to auto detect the PPM profile
@@ -7,8 +14,8 @@
 struct PPMProfiles PPM::_profiles[PPM::PPM_PROFILES] =
 {
     //+-------------+-----------+-----------------+-----------------------------------+-----------------+-----------------------------------+//
-    //|  PPM mode   | Channels# |      Frame      |             PWM Pulse             |       Pre       |          Synchro Pulse            |//
-    //|             | min | max |      length     |       min       |       max       |       max       |       min       |       max       |//
+    //|  PPM mode   | Channels# |      Frame      |             PWM Pulse             |    PPM Pulse    |          Synchro Pulse            |//
+    //|             | min | max |      length     |       min       |       max       |     average     |       min       |       max       |//
     //+-------------+-----+-----+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+//
       { PPM_UNKNOWN , 255 ,   0 , PULSE_WIDTH_ERR , PULSE_WIDTH_MAX , PULSE_WIDTH_ERR , PULSE_WIDTH_ERR , PULSE_WIDTH_MAX , PULSE_WIDTH_ERR },
       { PPM_STANDARD,   4 ,   8 ,           20000 ,             920 ,            2120 ,             400 ,            3040 ,           16320 },
@@ -42,7 +49,7 @@ inline bool PPM::guess_ppm_profile()
             {
                 _swtch_pulse_ndx = (_pulses_stat[0].average() < _pulses_stat[1].average()) ? 0 : 1;
 
-                if (MATCH_IN_RANGE((_pulses_stat[_swtch_pulse_ndx].average()), _profiles[i].ppm_pulse_med, PULSE_CAGE))
+                if (MATCH_IN_RANGE((_pulses_stat[_swtch_pulse_ndx].average()), _profiles[i].ppm_pulse_avg, PULSE_CAGE))
                 {
                     _profile = i;
 
@@ -59,31 +66,31 @@ inline bool PPM::guess_ppm_profile()
 
 inline pulse_width_t PPM::scale(const pulse_width_t unscaled)
 {
-    if ( unscaled < PPM_CAPTURE_PULSE_WIDTH_MIN )
+    if ( unscaled < PWM_CAPTURE_PULSE_WIDTH_MIN )
     {
         // shall issue an error
         //
         return PULSE_WIDTH_MIN;
     }
     else
-    if ( unscaled == PPM_CAPTURE_PULSE_WIDTH_MIN )
+    if ( unscaled == PWM_CAPTURE_PULSE_WIDTH_MIN )
     {
         return PULSE_WIDTH_MIN;
     }
     else
-    if ( unscaled > PPM_CAPTURE_PULSE_WIDTH_MAX )
+    if ( unscaled > PWM_CAPTURE_PULSE_WIDTH_MAX )
     {
         // shall issue an error
         //
         return PULSE_WIDTH_MAX;
     }
     else
-    if ( unscaled == PPM_CAPTURE_PULSE_WIDTH_MAX )
+    if ( unscaled == PWM_CAPTURE_PULSE_WIDTH_MAX )
     {
         return PULSE_WIDTH_MAX;
     }
 
-    return unscaled * PULSE_WIDTH_MAX / ( PPM_CAPTURE_PULSE_WIDTH_MAX - PPM_CAPTURE_PULSE_WIDTH_MIN );
+    return unscaled * PULSE_WIDTH_MAX / ( PWM_CAPTURE_PULSE_WIDTH_MAX - PWM_CAPTURE_PULSE_WIDTH_MIN );
 }
 
 inline void PPM::flush_pulses()
@@ -99,49 +106,12 @@ inline void PPM::flush_pulses()
     {
         _listener._pulse_capt[i] = scale(_pulses_ticks[i][0] + _pulses_ticks[i][1]);
 
-        //        +------------------------ _profiles[_profile].ppm_pulse_med - PULSE_CAGE
-        //        |                    
-        //        |       +---------------- _profiles[_profile].ppm_pulse_med - SWITCH_LEVEL
-        //        |       |            
-        //        |       |  +------------- _profiles[_profile].ppm_pulse_med
-        //        |       |  |         
-        //        |       |  |  +---------- _profiles[_profile].ppm_pulse_med + SWITCH_LEVEL
-        //        |       |  |  |      
-        //        |       |  |  |       +-- _profiles[_profile].ppm_pulse_med + PULSE_CAGE
-        //        |       |  |  |       |
-        //        v       v  v  v       v
-        //        +-------+++++++-------+             +--...--+
-        //        |       +++++++       |             |       |
-        //        |       +++++++       |             |       |
-        //        |       +++++++       |             |       |
-        //        |       +++++++       |             |       |
-        //        |       +++++++       |             |       |
-        //        |       +++++++       |             |       |
-        //        |       +++++++       |             |       |
-        //        |       +++++++       |             |       |
-        //        |       +++++++       |             |       |
-        //        |       +++++++       |             |       |
-        //        |       +++++++       |             |       |
-        //        |       +++++++       |             |       |
-        //   -----+       +++++++       +----.....----+       +----...---
-        //
-        //         \...../\...../\...../\............./\...../
-        //            ^      ^      ^          ^          ^
-        //            |      |      |          |          |
-        //            |      |      |          |          +---- 
-        //            |      |      |  
-        //            |      |      +--- toggle switches' odd bits
-        //            |      |         
-        //            |      +---------- NOP area
-        //            |               
-        //            +----------------- toggle switches' even bits
-        //
-        if ( _pulses_ticks[i][_swtch_pulse_ndx] < (_profiles[_profile].ppm_pulse_med - SWITCH_LEVEL) )
+        if ( _pulses_ticks[i][_swtch_pulse_ndx] < (_profiles[_profile].ppm_pulse_avg - SWITCH_LEVEL) )
         {
             _listener._switches ^= ( 1 << ( i << 1 ) );
         }
         else
-        if ( _pulses_ticks[i][_swtch_pulse_ndx] > (_profiles[_profile].ppm_pulse_med + SWITCH_LEVEL) )
+        if ( _pulses_ticks[i][_swtch_pulse_ndx] > (_profiles[_profile].ppm_pulse_avg + SWITCH_LEVEL) )
         {
             _listener._switches ^= ( 1 << ( ( i << 1 ) + 1 ) );
         }
@@ -169,7 +139,7 @@ void PPM::process_pulse(const pulse_width_t width_s0, const pulse_width_t width_
         // a long pulse indicates the end of a frame. Reset the
         // channel counter so next pulse is channel 0
         //
-        if (guess_ppm_profile() && (_channels >= PPM_CAPTURE_NUM_CHANNELS_MIN))
+        if (guess_ppm_profile() && (_channels >= PWM_CAPTURE_NUM_CHANNELS_MIN))
         {
             flush_pulses();
         }
@@ -186,14 +156,14 @@ void PPM::process_pulse(const pulse_width_t width_s0, const pulse_width_t width_
         return;
     }
 
-    // we limit inputs to between 700usec and 2300usec. This allows us
-    // to decode SBUS on the same pin, as SBUS will have a maximum
-    // pulse width of 100usec
+    // we limit inputs to a limited range of pulse widths.
     //
-    if ((pulse_ticks > PPM_CAPTURE_PULSE_WIDTH_MIN) && (pulse_ticks < PPM_CAPTURE_PULSE_WIDTH_MAX))
+    // This allows us to decode SBUS on the same pin,
+    // as SBUS will have a maximum pulse width of 100usec
+    //
+    if ((pulse_ticks > PWM_CAPTURE_PULSE_WIDTH_MIN) && (pulse_ticks < PWM_CAPTURE_PULSE_WIDTH_MAX))
     {
         // take a reading for the current channel
-        // buffer these
         //
         _pulses_ticks[_channels][0] = width_s0;
         _pulses_ticks[_channels][1] = width_s1;

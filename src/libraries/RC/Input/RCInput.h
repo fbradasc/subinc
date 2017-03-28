@@ -120,6 +120,10 @@ private:
      */
     static volatile uint8_t _num_channels;
 
+    /* Digital channels
+     */
+    static volatile uint32_t _switches;
+
     /* Current override values in
      *
      * { PULSE_WIDTH_ERR U [PULSE_WIDTH_MIN, PULSE_WIDTH_MAX] }
