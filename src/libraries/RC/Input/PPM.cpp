@@ -11,6 +11,9 @@
 
 #define MATCH_IN_RANGE(a,b,r)    (((a) >= ((b) - (r))) && ((a) <= ((b) + (r))))
 
+#define SWITCHED_L(p)            ((p) < (_profiles[_profile].ppm_pulse_avg - SWITCH_LEVEL))
+#define SWITCHED_H(p)            ((p) > (_profiles[_profile].ppm_pulse_avg + SWITCH_LEVEL))
+
 struct PPMProfiles PPM::_profiles[PPM::PPM_PROFILES] =
 {
     //+-------------+-----------+-----------------+-----------------------------------+-----------------+-----------------------------------+//
@@ -106,15 +109,13 @@ inline void PPM::flush_pulses()
     {
         _listener._pulse_capt[i] = scale(_pulses_ticks[i][0] + _pulses_ticks[i][1]);
 
-        if ( _pulses_ticks[i][_swtch_pulse_ndx] < (_profiles[_profile].ppm_pulse_avg - SWITCH_LEVEL) )
-        {
-            _listener._switches ^= ( 1 << ( i << 1 ) );
-        }
-        else
-        if ( _pulses_ticks[i][_swtch_pulse_ndx] > (_profiles[_profile].ppm_pulse_avg + SWITCH_LEVEL) )
-        {
-            _listener._switches ^= ( 1 << ( ( i << 1 ) + 1 ) );
-        }
+        uint32_t cur_switch_bit = SWITCHED_L(_pulses_ticks[i][_swtch_pulse_ndx]) ? ( 1 <<   ( i << 1 )       )
+                                : SWITCHED_H(_pulses_ticks[i][_swtch_pulse_ndx]) ? ( 1 << ( ( i << 1 ) + 1 ) )
+                                : 0;
+
+        _listener._switches ^= ( cur_switch_bit & ~_old_switch_bit );
+
+        _old_switch_bit = cur_switch_bit;
     }
 
     _listener._num_channels = _channels;

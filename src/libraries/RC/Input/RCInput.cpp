@@ -319,32 +319,24 @@ bool RCInput::rc_bind(int dsm_mode)
 
 void RCInput::process_rc_pulse(void)
 {
-    static pulse_width_t pulse_ticks[2] = { 0 };
-    static pulse_width_t pulse_us   [2] = { 0 };
-    static pulse_width_t prev_ticks     = 0;
+    static pulse_width_t pulse_width[2] = { 0 };
+    static pulse_width_t prev_time      = 0;
     static timestamp_t   timestamp      = 0;
+    static uint8_t       input_pins_old = 0;
                                        
-    const pulse_width_t  curr_ticks = Timer.get();
-
-    // To store current input pins
-    //
-    const uint8_t input_pins = SERVO_INPUT;
-    
-    // Servo input pin storage 
-    //
-    static uint8_t input_pins_old = 0;
+    const  pulse_width_t curr_time      = Timer.ticksToUs(Timer.get());
+    const  uint8_t       input_pins     = SERVO_INPUT;
     
     if ( ( input_pins ^ input_pins_old ) & RC_INPUT_PIN )
     {
         const bool cur_pin_level = ( input_pins & RC_INPUT_PIN ) ? true : false ;
         const bool old_pin_level = !cur_pin_level;
 
-        pulse_ticks[old_pin_level] = Timer.difftime(curr_ticks, prev_ticks);
-        pulse_us   [old_pin_level] = Timer.ticksToUs(pulse_ticks[old_pin_level]);
+        pulse_width[old_pin_level] = Timer.difftime(curr_time, prev_time);
 
-        timestamp += pulse_us[old_pin_level];
+        timestamp += pulse_width[old_pin_level];
 
-        prev_ticks = curr_ticks;
+        prev_time = curr_time;
 
         if ( cur_pin_level )
         {
@@ -353,7 +345,7 @@ void RCInput::process_rc_pulse(void)
             {
                 static PPM ppm(this);
 
-                ppm.process_pulse(pulse_ticks[0], pulse_ticks[1]);
+                ppm.process_pulse(pulse_width[0], pulse_width[1]);
             }
 
             // treat as SBUS
@@ -361,7 +353,7 @@ void RCInput::process_rc_pulse(void)
             {
                 static SBus sbus(this);
 
-                sbus.process_pulse(pulse_us[0], pulse_us[1]);
+                sbus.process_pulse(pulse_width[0], pulse_width[1]);
             }
 
             // treat as DSM
@@ -369,7 +361,7 @@ void RCInput::process_rc_pulse(void)
             {
                 static DSM dsm(this);
 
-                dsm.process_pulse(timestamp, pulse_us[0], pulse_us[1]);
+                dsm.process_pulse(timestamp, pulse_width[0], pulse_width[1]);
             }
         }
     }
@@ -382,110 +374,5 @@ void RCInput::process_pwm_pulse()
 {
     static PWM pwm(this);
 
-    pmw.process_pulses(Timer.get(), SERVO_INPUT);
-
-    static const pulse_width_t PWM_PULSEWIDTH_MIN   = Timer.usToTicks(_RCInput::PWM::PulseWidth::_min);
-    static const pulse_width_t PWM_PULSEWIDTH_MAX   = Timer.usToTicks(_RCInput::PWM::PulseWidth::_max);
-    static const pulse_width_t PWM_JITTER_FILTER    = Timer.usToTicks(_RCInput::PWM::_jitter_filter);
-    static const uint8_t       PWM_NUM_CHANNELS_MAX = _RCInput::PWM::_num_channels;
-    static const bool          PWM_AVERAGE_FILTER   = _RCInput::PWM::_average_filter;
-
-    // Servo pulse start timing
-    //
-    static pulse_width_t prev_time[PWM_NUM_CHANNELS_MAX] = { 0 };
-
-    // Read current pulse change time
-    //
-    const pulse_width_t curr_time = Timer.get();
-
-    // Servo input pin storage 
-    //
-    static uint8_t input_pins_old = 0;
-
-    // Used to store current input pins
-    //
-    const uint8_t input_pins = SERVO_INPUT;
-
-    // Calculate input pin change mask
-    //
-    uint8_t input_change = input_pins ^ input_pins_old;
-    
-    if ( input_change )
-    {
-        for
-        (
-            unit8_t cur_channel = 0,
-                    input_pin   = 1
-            ;
-            input_change && ( cur_channel < PWM_NUM_CHANNELS_MAX )
-            ;
-            cur_channel++,
-            input_pin <<= 1
-        )
-        {
-            // Check for pin change on current input channel
-            //
-            if ( input_change & input_pin )
-            {
-                // Remove processed pin change from bitmask
-                //
-                input_change &= ~input_pin;
-
-                // High (raising edge)
-                //
-                if ( input_pins & input_pin )
-                {
-                    prev_time[cur_channel] = curr_time;
-                }
-                else
-                {
-                    // Get pulse width
-                    //
-                    pulse_width_t pulse_ticks = Timer.difftime(curr_time, prev_time[cur_channel]);
-                    
-                    // Check that pulse signal is valid
-                    //
-                    if ( ( pulse_ticks < PWM_PULSEWIDTH_MIN ) || ( pulse_ticks > PWM_PULSEWIDTH_MAX ) )
-                    {
-                        // Invalid input signals --> TODO need to notify ?
-                        //
-                        continue;
-                    }
-                    
-                    if (PWM_AVERAGE_FILTER)
-                    {
-                        // Average filter to smooth input jitter
-                        //
-                        pulse_ticks += _pulse_capt[cur_channel];
-
-                        pulse_ticks >>= 1;
-                    }
-
-                    if (PWM_JITTER_FILTER > 0)
-                    {
-                        // 0.5us cut filter to remove input jitter
-                        //
-                        pulse_width_t ppm_tmp = _pulse_capt[cur_channel] - pulse_ticks;
-
-                        if ( ppm_tmp <= PWM_JITTER_FILTER && ppm_tmp >= -PWM_JITTER_FILTER )
-                        {
-                            continue;
-                        }
-                    }
-
-                    // Update _pulse_capt[..]
-                    //
-                    _pulse_capt[cur_channel] = pulse_ticks;
-                }
-            }
-        }
-
-        // Store current input pins for next check
-        //
-        input_pins_old = input_pins;
-
-        _num_channels  = PWM_NUM_CHANNELS_MAX;
-
-        _new_input     = true;
-    }
+    pmw.process_pulses(Timer.ticksToUs(Timer.get()), SERVO_INPUT);
 }

@@ -90,12 +90,14 @@ private:
     pulse_width_t  _pulses_ticks[PPM_CAPTURE_NUM_CHANNELS_MAX][2];
     PulseStat      _pulses_stats[2];
     uint8_t        _swtch_pulse_ndx;
+    uint32_t       _old_switch_bit;
     
     inline void reset_ppm_profile()
     {
         _profile         =  0;
         _channels        = -1;
         _swtch_pulse_ndx =  0;
+        _old_switch_bit  =  0;
 
         memset(_pulses_ticks, 0, sizeof(_pulses_ticks)); 
         _pulses_stat[0].reset();
@@ -120,9 +122,8 @@ private:
         }
     }
 
-    bool          guess_ppm_profile()
+    bool          guess_ppm_profile();
     pulse_width_t scale            (const pulse_width_t unscaled)
     void          flush_pulses     ();
-
 };
 
