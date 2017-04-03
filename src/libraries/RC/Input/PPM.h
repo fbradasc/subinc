@@ -87,17 +87,15 @@ private:
 
     int8_t         _profile;
     uint8_t        _channels;
-    pulse_width_t  _pulses_ticks[PPM_CAPTURE_NUM_CHANNELS_MAX][2];
+    pulse_width_t  _pulses_ticks[PPM_CAPTURE_NUM_CHANNELS_MAX+1][2];
     PulseStat      _pulses_stats[2];
-    uint8_t        _swtch_pulse_ndx;
-    uint32_t       _old_switch_bit;
+    uint8_t        _mark_pulse_ndx;
     
     inline void reset_ppm_profile()
     {
-        _profile         =  0;
-        _channels        = -1;
-        _swtch_pulse_ndx =  0;
-        _old_switch_bit  =  0;
+        _profile        =  0;
+        _channels       = -1;
+        _mark_pulse_ndx =  0;
 
         memset(_pulses_ticks, 0, sizeof(_pulses_ticks)); 
         _pulses_stat[0].reset();
@@ -122,8 +120,17 @@ private:
         }
     }
 
+    inline bool PPM::getParity16(uint16_t x)
+    {
+        x ^= x >> 8;
+        x ^= x >> 4;
+        x ^= x >> 2;
+        x ^= x >> 1;
+
+        return (~x) & 0x01;
+    }
+
     bool          guess_ppm_profile();
     pulse_width_t scale            (const pulse_width_t unscaled)
-    void          flush_pulses     ();
 };
 
