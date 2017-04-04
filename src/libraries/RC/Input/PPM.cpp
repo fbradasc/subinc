@@ -3,6 +3,7 @@
 #define PWM_CAPTURE_NUM_CHANNELS_MIN  _profiles[_profile].channels_min;
 #define PWM_CAPTURE_PULSE_WIDTH_MIN   _profiles[_profile].pwm_pulse_min;
 #define PWM_CAPTURE_PULSE_WIDTH_MAX   _profiles[_profile].pwm_pulse_max;
+#define PWM_CAPTURE_PULSE_WIDTH_LEN   _profiles[_profile].pwm_pulse_len;
 #define PPM_CAPTURE_MIN_SYNC_PULSE_W  _profiles[_profile].syn_pulse_min;
 
 #define SWITCH_LEVEL   25                      // used to auto detect digital data over mark pulse
@@ -35,6 +36,8 @@
 #define ID_MINOR_MASK    0x0f
 #define SWITCHES_POS     16
 #define SWITCHES_MASK    0xff
+#define PAYLOADS_POS     16
+#define PAYLOADS_MASK    0xffff
 #define CHECKSUM_POS     0
 #define CHECKSUM_MASK    0xffff
 #define PARITY_L_POS     1
@@ -42,25 +45,28 @@
 #define PARITY_H_POS     0
 #define PARITY_H_MASK    0x01
 
-#define GetDevMajor(d)   (((d) >> ID_MAJOR_POS) & ID_MAJOR_MASK)
-#define GetDevMinor(d)   (((d) >> ID_MINOR_POS) & ID_MINOR_MASK)
-#define GetSwitches(d)   (((d) >> SWITCHES_POS) & SWITCHES_MASK)
-#define GetSwitches(d)   (((d) >> SWITCHES_POS) & SWITCHES_MASK)
-#define GetChecksum(d)   (((d) >> CHECKSUM_POS) & CHECKSUM_MASK)
-#define GetParityLo(d)   (((d) >> PARITY_L_POS) & PARITY_L_MASK)
-#define GetParityHi(d)   (((d) >> PARITY_H_POS) & PARITY_H_MASK)
+#define GetDevMajor(d)   (uint8_t )(((d) >> ID_MAJOR_POS) & ID_MAJOR_MASK)
+#define GetDevMinor(d)   (uint8_t )(((d) >> ID_MINOR_POS) & ID_MINOR_MASK)
+#define GetSwitches(d)   (uint8_t )(((d) >> SWITCHES_POS) & SWITCHES_MASK)
+#define GetPayloads(d)   (uint16_t)(((d) >> PAYLOADS_POS) & PAYLOADS_MASK)
+#define GetChecksum(d)   (uint16_t)(((d) >> CHECKSUM_POS) & CHECKSUM_MASK)
+#define GetHiParity(d)   (uint8_t )(((d) >> PARITY_H_POS) & PARITY_H_MASK)
+#define GetLoParity(d)   (uint8_t )(((d) >> PARITY_L_POS) & PARITY_L_MASK)
+
+                const uint16_t payloads = 
+                const uint16_t checksum = (uint16_t)((_data >>  0) & 0xffff);
 
 struct PPMProfiles PPM::_profiles[PPM::PPM_PROFILES] =
 {
-    //+-------------+-----------+-----------------+-----------------------------------+-----------------+-----------------------------------+//
-    //|  PPM mode   | Channels# |      Frame      |             PWM Pulse             |    PPM Pulse    |          Synchro Pulse            |//
-    //|             | min | max |      length     |       min       |       max       |     average     |       min       |       max       |//
-    //+-------------+-----+-----+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+//
-      { PPM_UNKNOWN , 255 ,   0 , PULSE_WIDTH_ERR , PULSE_WIDTH_MAX , PULSE_WIDTH_ERR , PULSE_WIDTH_ERR , PULSE_WIDTH_MAX , PULSE_WIDTH_ERR },
-      { PPM_STANDARD,   4 ,   8 ,           20000 ,             920 ,            2120 ,             400 ,            3040 ,           16320 },
-      { PPM_EXTENDED,   4 ,   9 ,           22500 ,             920 ,            2120 ,             400 ,            3420 ,           18820 },
-      { PPM_V2      ,   4 ,  16 ,           20000 ,             460 ,            1060 ,             200 ,            3040 ,           18160 },
-      { PPM_V3      ,   4 ,  16 ,           25000 ,             750 ,            1350 ,             400 ,            3400 ,           22000 }
+    //+-------------+-----------+-----------------+-----------------------------------------------------+-----------------+-----------------------------------+//
+    //|  PPM mode   | Channels# |      Frame      |                      PWM Pulse                      |    PPM Pulse    |          Synchro Pulse            |//
+    //|             | min | max |      length     |       min       |       max       |       len       |     average     |       min       |       max       |//
+    //+-------------+-----+-----+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+//
+      { PPM_UNKNOWN , 255 ,   0 , PULSE_WIDTH_ERR , PULSE_WIDTH_MAX , PULSE_WIDTH_ERR , PULSE_WIDTH_ERR , PULSE_WIDTH_ERR , PULSE_WIDTH_MAX , PULSE_WIDTH_ERR },
+      { PPM_STANDARD,   4 ,   8 ,           20000 ,             920 ,            2120 ,               0 ,             400 ,               0 ,               0 },
+      { PPM_EXTENDED,   4 ,   9 ,           22500 ,             920 ,            2120 ,               0 ,             400 ,               0 ,               0 },
+      { PPM_V2      ,   4 ,  16 ,           20000 ,             460 ,            1060 ,               0 ,             200 ,               0 ,               0 },
+      { PPM_V3      ,   4 ,  16 ,           25000 ,             750 ,            1350 ,               0 ,             400 ,               0 ,               0 }
 };
 
 inline bool PPM::guess_ppm_profile()
@@ -129,18 +135,13 @@ inline pulse_width_t PPM::scale(const pulse_width_t unscaled)
         return PULSE_WIDTH_MAX;
     }
 
-    return unscaled * PULSE_WIDTH_MAX / ( PWM_CAPTURE_PULSE_WIDTH_MAX - PWM_CAPTURE_PULSE_WIDTH_MIN );
-}
-
-bool PPM::validate_data(const uint8_t parity_bits)
-{
-    uint16_t h_data = ( _data >> 16 ) & 0x0000ffff;
-    uint16_t l_data = ( _data >>  0 ) & 0x0000ffff;
-
-    bool  h_parity = getParity16(h_data);
-    bool  l_parity = getParity16(l_data);
-
-    return ((h_parity == GetParityHi(parity_bits)) && (l_parity == GetParityLo(parity_bits)));
+    return PULSE_WIDTH_MIN
+           +
+           ( 
+              ( unscaled - PWM_CAPTURE_PULSE_WIDTH_MIN )
+              * 
+              ( PULSE_WIDTH_LEN / PWM_CAPTURE_PULSE_WIDTH_LEN )
+           );
 }
 
 // process a PPM-sum pulse of the given width
@@ -162,15 +163,22 @@ void PPM::process_pulse(const pulse_width_t width_s0, const pulse_width_t width_
         //
         if (guess_ppm_profile() && (_channels >= PWM_CAPTURE_NUM_CHANNELS_MIN))
         {
-            // take a reading for the sync channel
-            //
-            _pulses_ticks[_channels][0] = width_s0;
-            _pulses_ticks[_channels][1] = width_s1;
-
-            if (validate_data(GetData(_pulses_ticks[_channels][_mark_pulse_ndx])))
             {
-            }
+                // take a reading for the sync channel
+                //
+                _pulses_ticks[_channels][0] = width_s0;
+                _pulses_ticks[_channels][1] = width_s1;
 
+                const uint8_t  parities = GetData(_pulses_ticks[_channels][_mark_pulse_ndx]);
+                const uint16_t payloads = GetPayloads(_data);
+                const uint16_t checksum = GetChecksum(_data);
+
+                if ((calculateParity(payloads) == GetHiParity(parities)) &&
+                    (calculateParity(checksum) == GetLoParity(parities)))
+                {
+                    // TODO
+                }
+            }
 
             for (uint8_t i=0; i<_channels; i++)
             {

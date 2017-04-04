@@ -33,6 +33,7 @@ private:
         pulse_width_t frame_length;
         pulse_width_t pwm_pulse_min;
         pulse_width_t pwm_pulse_max;
+        pulse_width_t pwm_pulse_len;
         pulse_width_t ppm_pulse_avg;
         pulse_width_t syn_pulse_min;
         pulse_width_t syn_pulse_max;
@@ -68,10 +69,10 @@ private:
 
         inline void reset()
         {
-            sum=0;
-            min=PULSE_WIDTH_MAX;
-            max=PULSE_WIDTH_ERR;
-            num=0;
+            sum = 0;
+            min = PULSE_WIDTH_MAX;
+            max = PULSE_WIDTH_ERR;
+            num = 0;
         }
 
         inline pulse_width_t average()
@@ -112,20 +113,52 @@ private:
             //
             for (uint8_t i=1; i<ARRAY_SIZE(_profiles); i++)
             {
+                _profiles[i].pwm_pulse_len = (_profiles[i].pwm_pulse_max >= _profiles[i].pwm_pulse_min)
+                                             ? _profiles[i].pwm_pulse_max - _profiles[i].pwm_pulse_min
+                                             : _profiles[i].pwm_pulse_min - _profiles[i].pwm_pulse_max;
+
+                _profiles[i].syn_pulse_min = _profiles[i].frame_length
+                                             -
+                                             ( 
+                                                _profiles[i].pwm_pulse_max
+                                                *
+                                                _profiles[i].channels_max
+                                             );
+
+                _profiles[i].syn_pulse_max = _profiles[i].frame_length
+                                             -
+                                             ( 
+                                                _profiles[i].pwm_pulse_min
+                                                *
+                                                _profiles[i].channels_min
+                                             );
+
                 _profiles[0].pwm_pulse_min = GET_MIN(_profiles[i].pwm_pulse_min, _profiles[0].pwm_pulse_min);
                 _profiles[0].pwm_pulse_max = GET_MAX(_profiles[i].pwm_pulse_max, _profiles[0].pwm_pulse_max);
+                _profiles[0].pwm_pulse_len = GET_MAX(_profiles[i].pwm_pulse_len, _profiles[0].pwm_pulse_len);
                 _profiles[0].syn_pulse_min = GET_MIN(_profiles[i].syn_pulse_min, _profiles[0].syn_pulse_min);
                 _profiles[0].syn_pulse_max = GET_MAX(_profiles[i].syn_pulse_max, _profiles[0].syn_pulse_max);
             }
         }
     }
 
-    inline bool PPM::getParity16(uint16_t x)
+    inline bool PPM::calculateParity(uint16_t x)
     {
         x ^= x >> 8;
         x ^= x >> 4;
         x ^= x >> 2;
         x ^= x >> 1;
+
+        return (~x) & 0x01;
+    }
+
+    inline bool PPM::calculateParity(uint32_t x)
+    {
+        x ^= x >> 16;
+        x ^= x >>  8;
+        x ^= x >>  4;
+        x ^= x >>  2;
+        x ^= x >>  1;
 
         return (~x) & 0x01;
     }
