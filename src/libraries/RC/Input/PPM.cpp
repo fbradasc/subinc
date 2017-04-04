@@ -1,6 +1,7 @@
 #include <RC/Input/PPM.h>
 
 #define PWM_CAPTURE_NUM_CHANNELS_MIN  _profiles[_profile].channels_min;
+#define PWM_CAPTURE_NUM_CHANNELS_MAX  _profiles[_profile].channels_max;
 #define PWM_CAPTURE_PULSE_WIDTH_MIN   _profiles[_profile].pwm_pulse_min;
 #define PWM_CAPTURE_PULSE_WIDTH_MAX   _profiles[_profile].pwm_pulse_max;
 #define PWM_CAPTURE_PULSE_WIDTH_LEN   _profiles[_profile].pwm_pulse_len;
@@ -53,20 +54,19 @@
 #define GetHiParity(d)   (uint8_t )(((d) >> PARITY_H_POS) & PARITY_H_MASK)
 #define GetLoParity(d)   (uint8_t )(((d) >> PARITY_L_POS) & PARITY_L_MASK)
 
-                const uint16_t payloads = 
-                const uint16_t checksum = (uint16_t)((_data >>  0) & 0xffff);
+#define _c(c)  GET_MIN( (c), RC_INPUT_NUM_CHANNELS_MAX )
 
 struct PPMProfiles PPM::_profiles[PPM::PPM_PROFILES] =
 {
-    //+-------------+-----------+-----------------+-----------------------------------------------------+-----------------+-----------------------------------+//
-    //|  PPM mode   | Channels# |      Frame      |                      PWM Pulse                      |    PPM Pulse    |          Synchro Pulse            |//
-    //|             | min | max |      length     |       min       |       max       |       len       |     average     |       min       |       max       |//
-    //+-------------+-----+-----+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+//
-      { PPM_UNKNOWN , 255 ,   0 , PULSE_WIDTH_ERR , PULSE_WIDTH_MAX , PULSE_WIDTH_ERR , PULSE_WIDTH_ERR , PULSE_WIDTH_ERR , PULSE_WIDTH_MAX , PULSE_WIDTH_ERR },
-      { PPM_STANDARD,   4 ,   8 ,           20000 ,             920 ,            2120 ,               0 ,             400 ,               0 ,               0 },
-      { PPM_EXTENDED,   4 ,   9 ,           22500 ,             920 ,            2120 ,               0 ,             400 ,               0 ,               0 },
-      { PPM_V2      ,   4 ,  16 ,           20000 ,             460 ,            1060 ,               0 ,             200 ,               0 ,               0 },
-      { PPM_V3      ,   4 ,  16 ,           25000 ,             750 ,            1350 ,               0 ,             400 ,               0 ,               0 }
+    //+-------------+----------------+-----------------+-----------------------------------------------------+-----------------+-----------------------------------+//
+    //|  PPM mode   |    Channels#   |      Frame      |                      PWM Pulse                      |    PPM Pulse    |          Synchro Pulse            |//
+    //|             |  min  |   max  |      length     |       min       |       max       |       len       |     average     |       min       |       max       |//
+    //+-------------+-------+--------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+//
+      { PPM_UNKNOWN ,   255 ,      0 , PULSE_WIDTH_ERR , PULSE_WIDTH_MAX , PULSE_WIDTH_ERR , PULSE_WIDTH_ERR , PULSE_WIDTH_ERR , PULSE_WIDTH_MAX , PULSE_WIDTH_ERR },
+      { PPM_STANDARD, _c(4) , _c( 8) ,           20000 ,             920 ,            2120 ,               0 ,             400 ,               0 ,               0 },
+      { PPM_EXTENDED, _c(4) , _c( 9) ,           22500 ,             920 ,            2120 ,               0 ,             400 ,               0 ,               0 },
+      { PPM_V2      , _c(4) , _c(16) ,           20000 ,             460 ,            1060 ,               0 ,             200 ,               0 ,               0 },
+      { PPM_V3      , _c(4) , _c(16) ,           25000 ,             750 ,            1350 ,               0 ,             400 ,               0 ,               0 }
 };
 
 inline bool PPM::guess_ppm_profile()
@@ -205,7 +205,7 @@ void PPM::process_pulse(const pulse_width_t width_s0, const pulse_width_t width_
     // then
     // wait for a wide pulse
     //
-    if ((_channels == -1) || (_channels >= RC_INPUT_NUM_CHANNELS_MAX))
+    if ((_channels == -1) || (_channels >= PWM_CAPTURE_NUM_CHANNELS_MAX))
     {
         return;
     }

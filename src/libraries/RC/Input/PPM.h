@@ -2,8 +2,6 @@ pragma once;
 
 #include <RC/Input/RCInput.h>
 
-#define PPM_CAPTURE_NUM_CHANNELS_MAX  GET_MIN( 16, RC_INPUT_NUM_CHANNELS_MAX )
-
 class PPM
 {
 public:
@@ -88,7 +86,7 @@ private:
 
     int8_t         _profile;
     uint8_t        _channels;
-    pulse_width_t  _pulses_ticks[PPM_CAPTURE_NUM_CHANNELS_MAX+1][2];
+    pulse_width_t  _pulses_ticks[RC_INPUT_NUM_CHANNELS_MAX+1][2];
     PulseStat      _pulses_stats[2];
     uint8_t        _mark_pulse_ndx;
     
