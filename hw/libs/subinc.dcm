@@ -1,0 +1,19 @@
+EESchema-DOCLIB  Version 2.0
+#
+$CMP NE602
+D Signetics Mixer Oscillator
+K mixer oscillator
+$ENDCMP
+#
+$CMP SX1276/77/79
+D Semtech 137 MHz to 1020 MHz Low Power Long Range Transceiver
+K transceiver lora
+F /home/fbradasc/old_pc/sorgenti/ELETTRONICA/subinc/doc/sx1276.pdf
+$ENDCMP
+#
+$CMP Si5351A
+D Silicon Labs I2C-Programmable Any-Frequency CMOS Clock Generator + VCXO
+K clock
+$ENDCMP
+#
+#End Doc Library
