@@ -7,3 +7,5 @@ tags
 **/tags
 tests/config
 tests/debug
+**/*.bak
+**/*.bck

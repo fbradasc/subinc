@@ -1,5 +1,17 @@
 EESchema-DOCLIB  Version 2.0
 #
+$CMP 5P49V5933
+D VersaClock® 5 Low Power Programmable Clock Generator with Integrated Crystal
+K receiver uhf
+F doc/sx1239.pdf
+$ENDCMP
+#
+$CMP MRF39RA/SX1239
+D Low Power Integrated UHF Receiver
+K receiver uhf
+F doc/sx1239.pdf
+$ENDCMP
+#
 $CMP NE602
 D Signetics Mixer Oscillator
 K mixer oscillator
